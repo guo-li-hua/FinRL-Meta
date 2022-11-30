@@ -5,7 +5,7 @@ import zipfile
 from datetime import *
 from pathlib import Path
 from typing import List
-
+from numpy.random import randint
 import numpy as np
 import pandas as pd
 import stockstats
@@ -35,12 +35,12 @@ from meta.config_tickers import TECDAX_TICKER
 
 class _Base:
     def __init__(
-        self,
-        data_source: str,
-        start_date: str,
-        end_date: str,
-        time_interval: str,
-        **kwargs,
+            self,
+            data_source: str,
+            start_date: str,
+            end_date: str,
+            time_interval: str,
+            **kwargs,
     ):
         self.data_source: str = data_source
         self.start_date: str = start_date
@@ -109,7 +109,7 @@ class _Base:
 
     # select_stockstats_talib: 0 (stockstats, default), or 1 (use talib). Users can choose the method.
     def add_technical_indicator(
-        self, tech_indicator_list: List[str], select_stockstats_talib: int = 0
+            self, tech_indicator_list: List[str], select_stockstats_talib: int = 0
     ):
         """
         calculate technical indicators
@@ -143,7 +143,7 @@ class _Base:
                         temp_indicator["tic"] = unique_ticker[i]
                         temp_indicator["time"] = self.dataframe[
                             self.dataframe.tic == unique_ticker[i]
-                        ]["time"].to_list()
+                            ]["time"].to_list()
                         indicator_df = pd.concat(
                             [indicator_df, temp_indicator],
                             axis=0,
@@ -192,6 +192,85 @@ class _Base:
         time_to_drop = self.dataframe[self.dataframe.isna().any(axis=1)].time.unique()
         self.dataframe = self.dataframe[~self.dataframe.time.isin(time_to_drop)]
         print("Succesfully add technical indicators")
+
+    # Getting the last Fourier transform features
+    def get_fourier_transfer_last(self, data, steps, comp):
+        # print("get_fourier_transfer_last...")
+        if len(data) < steps:
+            return None
+
+        close_fft = np.fft.fft(np.asarray(data.tolist()))
+
+        fft_df = pd.DataFrame({'fft': close_fft})
+        fft_df['absolute'] = fft_df['fft'].apply(lambda x: np.abs(x))
+        fft_df['angle'] = fft_df['fft'].apply(lambda x: np.angle(x))
+
+        # 长度判断
+        if (fft_df.shape[0] < comp * 2):
+            return None
+
+        del_num = np.arange(comp, steps - comp, 1)
+        # print(del_num)
+        # print(fft_df)
+        fft_df.drop(index=del_num, axis=0, inplace=True)
+        fft_df.drop('fft', axis=1, inplace=True)
+
+        fft_df_new = fft_df.reset_index(drop=True)
+        # print('fft_df_new', fft_df_new)
+        return fft_df_new
+
+    def add_technical_factor_fft(self):
+        fft_steps = 21
+        fft_comp = 3
+        colums = []
+
+        data = self.dataframe
+        data = data.iloc[:, 4].rolling(window=fft_steps)
+
+        for name in ['absolute', 'angle']:  # 'fft',
+            for i in range(fft_comp * 2):
+                colums.append(name + str(i))
+
+        fft_data = pd.DataFrame(columns=colums)
+        # print(fft_data)
+
+        non_arr = np.zeros((1, fft_comp * 2 * 2), dtype=np.int32)  # fft_comp * 2 * 2
+        non_cnt = 0
+        # 循环获取数据
+        for win in data:
+            # print("win len:" , len(win))
+            if len(win) < fft_steps:
+                # 添加空数据,即在前面不能计算傅里叶数据的行内置空数据
+                fft_data.loc[non_cnt] = non_arr[-1]
+                non_cnt += 1
+                continue
+
+            # print(fft_data)
+            fft = self.get_fourier_transfer_last(win, fft_steps, fft_comp)
+            line_list = list()
+            # f_abc = pd.DataFrame({'fft': fft},index=)
+            for name in ['absolute', 'angle']:  # 'fft',
+                line_list.append(np.asarray(fft[name].iloc[0:])[:])
+                # print("line list:",name,line_list[:])
+
+            line_array = np.vstack(line_list)
+            cur_line = fft_data.shape[0]
+            agr_cnt = 0
+
+            # 增加空行数据
+            fft_data.loc[cur_line] = list(randint(10, size=len(colums)))
+
+            for arg in line_array:
+                for ar in arg:
+                    # print("ar=", ar)
+                    # fft_data.loc[,colums] = 0
+                    fft_data.loc[cur_line, colums[agr_cnt]] = ar
+                    agr_cnt += 1
+
+        print("fft_data", fft_data)
+        for name in colums:
+            self.dataframe[name] = fft_data[name]
+
 
     def add_turbulence(self):
         """
@@ -248,11 +327,11 @@ class _Base:
             hist_price = df_price_pivot[
                 (df_price_pivot.index < unique_date[i])
                 & (df_price_pivot.index >= unique_date[i - time_period])
-            ]
+                ]
             # Drop tickers which has number missing values more than the "oldest" ticker
             filtered_hist_price = hist_price.iloc[
-                hist_price.isna().sum().min() :
-            ].dropna(axis=1)
+                                  hist_price.isna().sum().min():
+                                  ].dropna(axis=1)
 
             cov_temp = filtered_hist_price.cov()
             current_temp = current_price[list(filtered_hist_price)] - np.mean(
@@ -395,13 +474,13 @@ class _Base:
             pass
             time_intervals = ["5m", "15m", "30m", "60m", "1d", "1w", "1M"]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             if (
-                "d" in self.time_interval
-                or "w" in self.time_interval
-                or "M" in self.time_interval
+                    "d" in self.time_interval
+                    or "w" in self.time_interval
+                    or "M" in self.time_interval
             ):
                 return self.time_interval[-1:].lower()
             elif "m" in self.time_interval:
@@ -426,8 +505,8 @@ class _Base:
                 "1M",
             ]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             return self.time_interval
         elif self.data_source == "ccxt":
@@ -435,8 +514,8 @@ class _Base:
         elif self.data_source == "iexcloud":
             time_intervals = ["1d"]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             return self.time_interval.upper()
         elif self.data_source == "joinquant":
@@ -453,8 +532,8 @@ class _Base:
                 "1M",
             ]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             return self.time_interval
         elif self.data_source == "quantconnect":
@@ -463,8 +542,8 @@ class _Base:
             #  nonstandard_time_interval: 'd' - 天，'w' - 周，'m' - 月， 'q' - 季，'y' - 年
             time_intervals = ["d", "w", "M", "q", "y"]
             assert self.time_interval[-1] in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             if "M" in self.time_interval:
                 return self.time_interval.lower()
@@ -475,8 +554,8 @@ class _Base:
             # time_intervals = ["1m", "5m", "15m", "30m", "60m", "1d"]
             time_intervals = ["1d"]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             return self.time_interval
         elif self.data_source == "wrds":
@@ -499,8 +578,8 @@ class _Base:
                 "3M",
             ]
             assert self.time_interval in time_intervals, (
-                "This time interval is not supported. Supported time intervals: "
-                + ",".join(time_intervals)
+                    "This time interval is not supported. Supported time intervals: "
+                    + ",".join(time_intervals)
             )
             if "w" in self.time_interval:
                 return self.time_interval + "k"
@@ -520,9 +599,9 @@ class _Base:
 
 
 def calc_time_zone(
-    ticker_list: List[str],
-    time_zone_selfdefined: str,
-    use_time_zone_selfdefined: int,
+        ticker_list: List[str],
+        time_zone_selfdefined: str,
+        use_time_zone_selfdefined: int,
 ) -> str:
     assert isinstance(ticker_list, list)
     ticker_list = ticker_list[0]
@@ -545,7 +624,7 @@ def calc_time_zone(
 
 def check_date(d: str) -> bool:
     assert (
-        len(d) == 10
+            len(d) == 10
     ), "Please check the length of date and use the correct date like 2020-01-01."
     indices = [0, 1, 2, 3, 5, 6, 8, 9]
     correct = True

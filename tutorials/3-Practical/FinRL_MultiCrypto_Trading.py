@@ -6,13 +6,14 @@ import time
 import numpy as np
 import sys
 
-sys.path.insert(0, "/FinRL-Meta")
+sys.path.insert(0, "../../..//FinRL-Meta")
 import os
 
-os.chdir("FinRL-Meta")
+# os.chdir("FinRL-Meta")
+os.chdir("./")
 
 from meta.env_crypto_trading.env_multiple_crypto import CryptoEnv
-from train import train
+from A_train import train
 from test import test
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -21,14 +22,14 @@ import matplotlib.ticker as ticker
 TICKER_LIST = [
     "BTCUSDT",
     "ETHUSDT",
-    "ADAUSDT",
-    "BNBUSDT",
-    "XRPUSDT",
-    "SOLUSDT",
-    "DOTUSDT",
-    "DOGEUSDT",
-    "AVAXUSDT",
-    "UNIUSDT",
+    # "ADAUSDT",
+    # "BNBUSDT",
+    # "XRPUSDT",
+    # "SOLUSDT",
+    # "DOTUSDT",
+    # "DOGEUSDT",
+    # "AVAXUSDT",
+    # "UNIUSDT",
 ]
 
 time_interval = "1d"
@@ -74,6 +75,7 @@ train(
     time_interval=time_interval,
     technical_indicator_list=INDICATORS,
     drl_lib="elegantrl",
+    env_train=env,
     env=env,
     model_name="ppo",
     current_working_dir="./test_ppo",

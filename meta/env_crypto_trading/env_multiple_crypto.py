@@ -82,7 +82,7 @@ class CryptoEnv:  # custom env
         done = self.time == self.max_step
         state = self.get_state()
         next_total_asset = self.cash + (self.stocks * self.price_array[self.time]).sum()
-        reward = (next_total_asset - self.total_asset) * 2**-16
+        reward = (next_total_asset - self.total_asset) * 2**-16   # why?
         self.total_asset = next_total_asset
         self.gamma_return = self.gamma_return * self.gamma + reward
         self.cumu_return = self.total_asset / self.initial_cash

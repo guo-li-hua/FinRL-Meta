@@ -38,9 +38,9 @@ def pearson_corr(df_, target):
     df = df_.dropna(axis=0, how="any")
     for i in df.columns.values:
         if (
-            (type(df[i].values[-1]) == float or type(df[i].values[-1]) == np.float64)
-            and i != "alpha084"
-            and i != "alpha191-017"
+                (type(df[i].values[-1]) == float or type(df[i].values[-1]) == np.float64)
+                and i != "alpha084"
+                and i != "alpha191-017"
         ):
             Pearson_dict[i] = scipy.stats.pearsonr(df[target].values, df[i].values)[0]
 
@@ -58,9 +58,9 @@ def spearmanr_corr(df_, target):
     df = df_.dropna(axis=0, how="any")
     for i in df.columns.values:
         if (
-            (type(df[i].values[-1]) == float or type(df[i].values[-1]) == np.float64)
-            and i != "alpha084"
-            and i != "alpha191-017"
+                (type(df[i].values[-1]) == float or type(df[i].values[-1]) == np.float64)
+                and i != "alpha084"
+                and i != "alpha191-017"
         ):
             Spearmanr_dict[i] = scipy.stats.spearmanr(df[target].values, df[i].values)[
                 0
@@ -128,11 +128,11 @@ def dma(S, A):  # 求S的动态移动平均，A作平滑因子,必须 0<A<1  (�
     return Y
 
 
+
 class MomentumFactors:
     """
     动量类因子
     """
-
     # 5日乖离率 'ic_mean': '-0.045657'
     def bias_5_days(close, N=5):
         # （收盘价-收盘价的N日简单平均）/ 收盘价的N日简单平均*100，在此n取5
@@ -226,16 +226,14 @@ class MomentumFactors:
     def volume_1_month(df, N=21):
         # 当日交易量 / 过去20日交易量MEAN * 过去20日收益率MEAN
         return (
-            df["volume"]
-            / df["volume"].rolling(N).mean()
-            * df["target"].rolling(N).mean()
+                df["volume"]
+                / df["volume"].rolling(N).mean()
+                * df["target"].rolling(N).mean()
         )
 
     # 多头力道 'ic_mean': '-0.039968'
     def bull_power(df, timeperiod=13):
-        return (df["high_price"] - ema(df["close_price"], timeperiod)) / df[
-            "close_price"
-        ]
+        return (df["high"] - ema(df["close"], timeperiod)) / df["close"]
 
 
 class EmotionFactors:
@@ -285,13 +283,13 @@ class EmotionFactors:
     # 6日成交金额的标准差 'ic_mean': '-0.044'
     def tvstd_6_days(df, N=6):
         # 6日成交额的标准差
-        trades = df["close_price"] * df["volume"]
+        trades = df["close"] * df["volume"]
         return pd.Series(std(trades, N))
 
     # 20日成交金额的标准差 'ic_mean': '-0.038'
     def tvstd_20_days(df, N=20):
         # 20日成交额的标准差
-        trades = df["close_price"] * df["volume"]
+        trades = df["close"] * df["volume"]
         return pd.Series(std(trades, N))
 
     # 成交量的5日指数移动平均 'ic_mean': '-0.035'
@@ -337,9 +335,9 @@ class EmotionFactors:
     def wvad(df, N=6):
         # (收盘价－开盘价)/(最高价－最低价)×成交量，再做加和，使用过去6个交易日的数据
         WVA = (
-            (df["close_price"] - df["open_price"])
-            / (df["high_price"] - df["low_price"])
-            * df["volume"]
+                (df["close"] - df["open"])
+                / (df["high"] - df["low"])
+                * df["volume"]
         )
         return WVA.rolling(N).sum()
 
@@ -352,8 +350,8 @@ class EmotionFactors:
     # 人气指标 'ic_mean': '-0.031'
     def ar(df, N=26):
         # AR=N日内（当日最高价—当日开市价）之和 / N日内（当日开市价—当日最低价）之和 * 100，n设定为26
-        ho = (df["high_price"] - df["open_price"]).rolling(N).sum()
-        ol = (df["open_price"] - df["low_price"]).rolling(N).sum()
+        ho = (df["high"] - df["open"]).rolling(N).sum()
+        ol = (df["open"] - df["low"]).rolling(N).sum()
         return ho / (ol * 100)
 
 
@@ -372,8 +370,8 @@ class extraFacters:
         # 2，将两列数据按前述OLS线性回归模型拟合出当日的斜率值（Beta）。
         # 3，取前M日的斜率时间序列，计算当日斜率的标准分z。
         # 4，将z与拟合方程的决定系数相乘，作为当日RSRS指标值。
-        X = sm.add_constant(df["low_price"])
-        model = sm.OLS(df["high_price"], X)
+        X = sm.add_constant(df["low"])
+        model = sm.OLS(df["high"], X)
         beta = model.fit().params
         r2 = model.fit().rsquared
         ans.append(beta)
@@ -387,9 +385,6 @@ class extraFacters:
         zscore = (section[-1] - mu) / sigma
         # 计算右偏RSRS标准分
         return pd.Series(zscore * beta * r2)
-
-    def vix():
-        pass
 
 
 class generalFactors:
@@ -405,9 +400,9 @@ class generalFactors:
 
     def kdj(df, KDJ_type, N=9, M1=3, M2=3):  # KDJ指标
         RSV = (
-            (df["close_price"] - llv(df["low_price"], N))
-            / (hhv(df["high_price"], N) - llv(df["low_price"], N))
-            * 100
+                (df["close_price"] - llv(df["low_price"], N))
+                / (hhv(df["high_price"], N) - llv(df["low_price"], N))
+                * 100
         )
         K = ema(RSV, (M1 * 2 - 1))
         if KDJ_type == "KDJ_K":
@@ -424,9 +419,9 @@ class generalFactors:
 
     def wr(df, N=10):  # W&R 威廉指标
         WR = (
-            (hhv(df["high_price"], N) - df["close_price"])
-            / (hhv(df["high_price"], N) - llv(df["low_price"], N))
-            * 100
+                (hhv(df["high"], N) - df["close"])
+                / (hhv(df["high"], N) - llv(df["low"], N))
+                * 100
         )
         return np.round(WR, 3)
 
@@ -465,15 +460,15 @@ class generalFactors:
         TR = series_sum(
             np.maximum(
                 np.maximum(
-                    df["high_price"] - df["low_price"],
-                    np.abs(df["high_price"] - ref(df["close_price"], 1)),
+                    df["high"] - df["low"],
+                    np.abs(df["high"] - ref(df["close"], 1)),
                 ),
-                np.abs(df["low_price"] - ref(df["close_price"], 1)),
+                np.abs(df["low"] - ref(df["close"], 1)),
             ),
             M1,
         )
-        HD = df["high_price"] - ref(df["high_price"], 1)
-        LD = ref(df["low_price"], 1) - df["low_price"]
+        HD = df["high"] - ref(df["high"], 1)
+        LD = ref(df["low"], 1) - df["low"]
         DMP = series_sum(np.where((HD > 0) & (HD > LD), HD, 0), M1)
         DMM = series_sum(np.where((LD > 0) & (LD > HD), LD, 0), M1)
         PDI = DMP * 100 / TR
@@ -490,8 +485,8 @@ class generalFactors:
         # return PDI, MDI, ADX, ADXR
 
     def taq(df, TAQ_type, N=6):  # 唐安奇通道(海龟)交易指标，大道至简，能穿越牛熊
-        UP = hhv(df["high_price"], N)
-        DOWN = llv(df["low_price"], N)
+        UP = hhv(df["high"], N)
+        DOWN = llv(df["low"], N)
         # MID=(UP+DOWN)/2
         if TAQ_type == "TAQ_UP":
             return UP
@@ -502,14 +497,14 @@ class generalFactors:
         # return UP,MID,DOWN
 
     def ktn(df, KTN_type, N=20, M=10):  # 肯特纳交易通道, N选20日，ATR选10日
-        MID = ema((df["high_price"] + df["low_price"] + df["close_price"]) / 3, N)
+        MID = ema((df["high"] + df["low"] + df["close"]) / 3, N)
         if KTN_type == "KTN_mid":
             return MID
         elif KTN_type == "KTN_upper":
-            ATRN = atr(df["close_price"], df["high_price"], df["low_price"], M)
+            ATRN = atr(df["close"], df["high"], df["low"], M)
             return MID + 2 * ATRN
         elif KTN_type == "KTN_lower":
-            ATRN = atr(df["close_price"], df["high_price"], df["low_price"], M)
+            ATRN = atr(df["close"], df["high"], df["low"], M)
             return MID - 2 * ATRN
         # return UPPER,MID,LOWER
 
@@ -523,29 +518,29 @@ class generalFactors:
         # return TRIX, TRMA
 
     def vr(df, M1=26):  # VR容量比率
-        LC = ref(df["close_price"], 1)
+        LC = ref(df["close"], 1)
         return (
-            series_sum(np.where(df["close_price"] > LC, df["volume"], 0), M1)
-            / series_sum(np.where(df["close_price"] <= LC, df["volume"], 0), M1)
-            * 100
+                series_sum(np.where(df["close"] > LC, df["volume"], 0), M1)
+                / series_sum(np.where(df["close"] <= LC, df["volume"], 0), M1)
+                * 100
         )
 
     def emv(df, EMV_type, N=14, M=9):  # 简易波动指标
         VOLUME = ma(df["volume"], N) / df["volume"]
         MID = (
-            100
-            * (
-                df["high_price"]
-                + df["low_price"]
-                - ref(df["high_price"] + df["low_price"], 1)
-            )
-            / (df["high_price"] + df["low_price"])
+                100
+                * (
+                        df["high"]
+                        + df["low"]
+                        - ref(df["high"] + df["low"], 1)
+                )
+                / (df["high"] + df["low"])
         )
         EMV = ma(
             MID
             * VOLUME
-            * (df["high_price"] - df["low_price"])
-            / ma(df["high_price"] - df["low_price"], N),
+            * (df["high"] - df["low"])
+            / ma(df["high"] - df["low"], N),
             N,
         )
         if EMV_type == "EMV":
@@ -565,9 +560,9 @@ class generalFactors:
     def brar(df, M1=26):  # BRAR-ARBR 情绪指标
         # AR = series_sum(HIGH - OPEN, M1) / series_sum(OPEN - LOW, M1) * 100
         return (
-            series_sum(np.maximum(0, df["high_price"] - ref(df["close_price"], 1)), M1)
-            / series_sum(np.maximum(0, ref(df["close_price"], 1) - df["low_price"]), M1)
-            * 100
+                series_sum(np.maximum(0, df["high_price"] - ref(df["close_price"], 1)), M1)
+                / series_sum(np.maximum(0, ref(df["close_price"], 1) - df["low_price"]), M1)
+                * 100
         )
         # return AR, BR
 
@@ -586,8 +581,8 @@ class generalFactors:
 
     def mass(df, MASS_type, N1=9, N2=25, M=6):  # 梅斯线
         MASS = series_sum(
-            ma(df["high_price"] - df["low_price"], N1)
-            / ma(ma(df["high_price"] - df["low_price"], N1), N1),
+            ma(df["high"] - df["low"], N1)
+            / ma(ma(df["high"] - df["low"], N1), N1),
             N2,
         )
         if MASS_type == "MASS":
@@ -599,19 +594,19 @@ class generalFactors:
 
     def obv(df):  # 能量潮指标
         return (
-            series_sum(
-                np.where(
-                    df["close_price"] > ref(df["close_price"], 1),
-                    df["volume"],
+                series_sum(
                     np.where(
-                        df["close_price"] < ref(df["close_price"], 1),
-                        -df["volume"],
-                        0,
+                        df["close"] > ref(df["close"], 1),
+                        df["volume"],
+                        np.where(
+                            df["close"] < ref(df["close"], 1),
+                            -df["volume"],
+                            0,
+                        ),
                     ),
-                ),
-                0,
-            )
-            / 10000
+                    0,
+                )
+                / 10000
         )
 
     def mfi(df, N=14):  # MFI指标是成交量的RSI指标
@@ -622,22 +617,22 @@ class generalFactors:
         return 100 - (100 / (1 + V1))
 
     def asi(df, ASI_type, M1=26, M2=10):  # 振动升降指标
-        LC = ref(df["close_price"], 1)
-        AA = np.abs(df["high_price"] - LC)
-        BB = np.abs(df["low_price"] - LC)
-        CC = np.abs(df["high_price"] - ref(df["low_price"], 1))
-        DD = np.abs(LC - ref(df["open_price"], 1))
+        LC = ref(df["close"], 1)
+        AA = np.abs(df["high"] - LC)
+        BB = np.abs(df["low"] - LC)
+        CC = np.abs(df["high"] - ref(df["low"], 1))
+        DD = np.abs(LC - ref(df["open"], 1))
         R = np.where(
             (AA > BB) & (AA > CC),
             AA + BB / 2 + DD / 4,
             np.where((BB > CC) & (BB > AA), BB + AA / 2 + DD / 4, CC + DD / 4),
         )
         X = (
-            df["close_price"]
-            - LC
-            + (df["close_price"] - df["open_price"]) / 2
-            + LC
-            - ref(df["open_price"], 1)
+                df["close"]
+                - LC
+                + (df["close"] - df["open"]) / 2
+                + LC
+                - ref(df["open"], 1)
         )
         SI = 16 * X / R * np.maximum(AA, BB)
         ASI = series_sum(SI, M1)
@@ -649,7 +644,7 @@ class generalFactors:
 
     def xsii(df, XSII_type, N=102, M=7):  # 薛斯通道II
         AA = ma(
-            (2 * df["close_price"] + df["high_price"] + df["low_price"]) / 4, 5
+            (2 * df["close"] + df["high"] + df["low"]) / 4, 5
         )  # 最新版DMA才支持 2021-12-4
         # TD1 = AA*N/100   TD2 = AA*(200-N) / 100
         if XSII_type == "XSII_TD1":
@@ -658,17 +653,17 @@ class generalFactors:
             return AA * (200 - N) / 100
         elif XSII_type == "XSII_TD3":
             CC = np.abs(
-                (2 * df["close_price"] + df["high_price"] + df["low_price"]) / 4
-                - ma(df["close_price"], 20)
-            ) / ma(df["close_price"], 20)
-            BB = df["close_price"].reset_index()["close_price"]
+                (2 * df["close"] + df["high"] + df["low"]) / 4
+                - ma(df["close"], 20)
+            ) / ma(df["close"], 20)
+            BB = df["close"].reset_index()["close"]
             DD = dma(BB, CC)
             return (1 + M / 100) * DD
         elif XSII_type == "XSII_TD4":
             CC = np.abs(
-                (2 * df["close_price"] + df["high_price"] + df["low_price"]) / 4
-                - ma(df["close_price"], 20)
-            ) / ma(df["close_price"], 20)
-            BB = df["close_price"].reset_index()["close_price"]
+                (2 * df["close"] + df["high"] + df["low"]) / 4
+                - ma(df["close"], 20)
+            ) / ma(df["close"], 20)
+            BB = df["close"].reset_index()["close"]
             DD = dma(BB, CC)
             return (1 - M / 100) * DD

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf
+import os
 
 try:
     import exchange_calendars as tc
@@ -32,12 +33,12 @@ from meta.data_processors._base import _Base, calc_time_zone
 
 class Yahoofinance(_Base):
     def __init__(
-        self,
-        data_source: str,
-        start_date: str,
-        end_date: str,
-        time_interval: str,
-        **kwargs
+            self,
+            data_source: str,
+            start_date: str,
+            end_date: str,
+            time_interval: str,
+            **kwargs
     ):
         super().__init__(data_source, start_date, end_date, time_interval, **kwargs)
 
@@ -46,15 +47,33 @@ class Yahoofinance(_Base):
             ticker_list, TIME_ZONE_SELFDEFINED, USE_TIME_ZONE_SELFDEFINED
         )
         self.dataframe = pd.DataFrame()
+        cache_dir = "./cache"
         for tic in ticker_list:
+            print(tic, "...to download...", self.start_date, self.end_date, self.time_interval)
+
+            cache_filename = "_" + tic + self.data_source + self.start_date + self.end_date + self.time_interval + ".csv"
+
+            cache_path = os.path.join(cache_dir, cache_filename)
+            print("cache_path:", cache_path)
+
+            ##download data
             temp_df = yf.download(
                 tic,
                 start=self.start_date,
                 end=self.end_date,
                 interval=self.time_interval,
             )
+            # print("download data :", temp_df.shape, temp_df)
+            # temp_df.to_csv(cache_path)
+
+            # ##reload data
+            # temp_df = pd.read_csv(cache_path, parse_dates=['Date']) #, parse_dates=['Date']
+            # print(temp_df)
+
             temp_df["tic"] = tic
             self.dataframe = pd.concat([self.dataframe, temp_df], axis=0, join="outer")
+
+        # self.dataframe.to_csv(cache_dir + "/all.csv")
         self.dataframe.reset_index(inplace=True)
         try:
             self.dataframe.columns = [

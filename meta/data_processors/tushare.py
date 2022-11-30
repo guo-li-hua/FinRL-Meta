@@ -3,6 +3,7 @@ import time
 import warnings
 from copy import deepcopy
 from typing import List
+import numpy
 
 import pandas as pd
 from tqdm import tqdm
@@ -140,7 +141,9 @@ class Tushare(_Base):
 
         # back fill missing data then front fill
         df3 = pd.DataFrame(columns=df2.columns)
-        for i in self.ticker_list:
+        tic_list = numpy.unique(self.dataframe.tic.values)
+        # for i in self.ticker_list:
+        for i in tic_list:
             df4 = df2[df2.tic == i].fillna(method="bfill").fillna(method="ffill")
             df3 = pd.concat([df3, df4], ignore_index=True)
 

@@ -3,7 +3,9 @@ SINGLE_TICKER = ["AAPL"]
 # Dow 30 constituents on 2021/10
 # check https://wrds-www.wharton.upenn.edu/ for U.S. index constituents (needs account)
 DOW_30_TICKER = [
-    "AXP",
+    # "AAPL",  del
+    # "CS.PA",  del
+    # "AXP",  del
     "AMGN",
     "AAPL",
     "BA",

@@ -74,7 +74,9 @@ ticker_list = [
     # "510800.SH",
     # "600000.SH",
     # "BTC-USDT",
-    "600009.SH",
+    "BTCUSDT",
+    "ETHUSDT",
+    # "600009.SH",
     # "600016.SH",
     # "600028.SH",
     # "600030.SH",
@@ -90,18 +92,17 @@ ticker_list = [
     # "600570.SH",
 ]
 # At Oct.22 2022, trade date available span is [2020-04-22, 2022-10-21]
-TRAIN_START_DATE = "2015-01-01"
-TRAIN_END_DATE = "2022-10-06"
-TRADE_START_DATE = "2022-10-06"
-TRADE_END_DATE = "2022-11-07"
+TRAIN_START_DATE = "2017-11-10"
+TRAIN_END_DATE = "2019-08-01"
+TRADE_START_DATE = "2019-08-01"
+TRADE_END_DATE = "2020-01-03"
 
-#1个月  3个月
 TIME_INTERVAL = "1d"
+# INDICATORS = ['macd','rsi', 'cci', 'dx'] #['macd', 'rsi', 'cci', 'dx']  # self-defined technical indicator list is NOT supported yet
 kwargs = {}
-kwargs[
-    "token"] = "3082a6ea9b417fdfb3d32e4af9cde1e7af610246378c131ef24ab062"  # "27080ec403c0218f96f388bca1b1d85329d563c91a43672239619ef5"
+# kwargs["token"] = "3082a6ea9b417fdfb3d32e4af9cde1e7af610246378c131ef24ab062"  # "27080ec403c0218f96f388bca1b1d85329d563c91a43672239619ef5"
 p = DataProcessor(
-    data_source="tushare",  # "tushare",
+    data_source="binanceTu",  # "tushare",
     start_date=TRAIN_START_DATE,
     end_date=TRADE_END_DATE,
     time_interval=TIME_INTERVAL,
@@ -112,29 +113,20 @@ p = DataProcessor(
 # p.download_data(ticker_list=ticker_list)
 price_array, tech_array, turbulence_array = p.run(ticker_list, config.INDICATORS, False, cache=True)
 
+data_config = {'price_array': price_array,
+               'tech_array': tech_array,
+               'turbulence_array': turbulence_array}
+
 p.clean_data()
-# print(p.dataframe)
 
 # add_technical_indicator
-# p.add_technical_indicator(config.INDICATORS)
+p.add_technical_indicator(config.INDICATORS, 1)
 # p.clean_data()
-
-# 添加因子
-factor_list = [
-    "bias_5_days",
-    "roc_6_days",
-    "vstd_10_days",
-]
-p.add_technical_factor(factor_list)
-# print(f"p.dataframe: {p.dataframe}")
-
-# 丢弃前n个数据，避免数据为0影响训练结果
-p.dataframe = p.dataframe.iloc[20:, :].reset_index(drop=True)
 print(f"p.dataframe: {p.dataframe}")
 
 ### Split traning dataset
-
-train = p.data_split(p.dataframe, TRAIN_START_DATE, TRAIN_END_DATE)
+p.dataframe.rename(columns={"time": "date"}, inplace=True)
+train = p.data_split(p.dataframe, TRAIN_START_DATE, TRAIN_END_DATE, target_date_col="date")
 print(f"len(train.tic.unique()): {len(train.tic.unique())}")
 
 print(f"train.tic.unique(): {train.tic.unique()}")
@@ -151,7 +143,7 @@ print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
 
 env_kwargs = {
     "stock_dim": stock_dimension,
-    "hmax": 1000,
+    "hmax": 100,
     "initial_amount": 1000000,
     "buy_cost_pct": 6.87e-5,
     "sell_cost_pct": 1.0687e-3,
@@ -199,11 +191,12 @@ trained_a2c = agent.train_model(
 )
 
 ### Trade
-
+# p.dataframe.rename(columns={"date": "time"}, inplace=True)
 trade = p.data_split(p.dataframe, TRADE_START_DATE, TRADE_END_DATE)
+# p.dataframe.rename(columns={"time": "date"}, inplace=True)
 env_kwargs = {
     "stock_dim": stock_dimension,
-    "hmax": 10000,
+    "hmax": 100,
     "initial_amount": 1000000,
     "buy_cost_pct": 6.87e-5,
     "sell_cost_pct": 1.0687e-3,
@@ -235,6 +228,8 @@ from matplotlib import pyplot as plt
 
 plt.clf()
 plotter = ReturnPlotter(df_account_value, trade, TRADE_START_DATE, TRADE_END_DATE)
+
+'''
 plotter.plot_all()
 
 plt.clf()
@@ -244,11 +239,12 @@ plotter.plot()
 # # ticket: SSE 50：000016
 plt.clf()
 plotter.plot("000016")
-
+'''
+'''
 #### Use pyfolio
 
 # CSI 300  #沪深300  399300
-baseline_df = plotter.get_baseline("600009")
+baseline_df = plotter.get_baseline(ticker_list[0])
 
 daily_return = plotter.get_return(df_account_value)
 daily_return_base = plotter.get_return(baseline_df, value_col_name="close")
@@ -261,9 +257,12 @@ perf_stats_all = perf_func(
     transactions=None,
     turnover_denom="AGB",
 )
+
+
 print("==============DRL Strategy Stats===========")
 print(f"perf_stats_all: {perf_stats_all}")
-
+'''
+'''
 daily_return = plotter.get_return(df_account_value)
 daily_return_base = plotter.get_return(baseline_df, value_col_name="close")
 
@@ -278,3 +277,4 @@ perf_stats_all = perf_func(
 print("==============Baseline Strategy Stats===========")
 
 print(f"perf_stats_all: {perf_stats_all}")
+'''

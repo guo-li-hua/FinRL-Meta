@@ -1,26 +1,40 @@
-# 1. Import Packages
-import warnings
+# [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AI4Finance-Foundation/FinRL-Meta/blob/master/Demo_MultiCrypto_Trading.ipynb)
+#
+#
+# %cd /
+# !git clone https://github.com/AI4Finance-Foundation/FinRL-Meta
+# %cd /FinRL-Meta/
+# !pip install git+https://github.com/AI4Finance-LLC/ElegantRL.git
+# !pip install git+https://github.com/AI4Finance-LLC/FinRL-Library.git
+# !pip install yfinance stockstats
+# !pip install alpaca_trade_api
+# !pip install ray[default]
+# !pip install lz4
+# !pip install ray[tune]
+# !pip install tensorboardX
+# !pip install gputil
+# !pip install trading_calendars
+# !pip install wrds
+# !pip install rqdatac
+# !pip install sqlalchemy==1.2.19
+# !pip install tushare
+# #install talib
+# !wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+# !tar xvzf ta-lib-0.4.0-src.tar.gz
+# import os
+# os.chdir('ta-lib')
+# ./configure --prefix=/usr
+# !make
+# !make install
+# os.chdir('../')
+# !pip install TA-Lib
+# !pip install baostock
+# !pip install quandl
+#
+#
+# %cd /FinRL-Meta/
 
-warnings.simplefilter(action="ignore", category=FutureWarning)
-import time
-import numpy as np
-import sys
-import math
-import os
 
-sys.path.insert(0, "../../../FinRL-Meta")
-sys.path.insert(0, "../../meta")
-
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-# os.chdir("../../../FinRL-Meta")
-
-from meta.env_crypto_trading.env_multiple_crypto import CryptoEnv
-# from A_train import train
-# from test import test
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-
-from meta.data_processor import DataProcessor
 from agents.elegantrl_models import DRLAgent as DRLAgent_erl
 from agents.rllib_models import DRLAgent as DRLAgent_rllib
 from agents.stablebaselines3_models import DRLAgent as DRLAgent_sb3
@@ -37,7 +51,6 @@ def train(start_date, end_date, ticker_list, data_source, time_interval,
     price_array, tech_array, turbulence_array = DP.run(ticker_list,
                                                        technical_indicator_list,
                                                        if_vix, cache=True)
-    print(DP.dataframe)
 
     data_config = {'price_array': price_array,
                    'tech_array': tech_array,
@@ -104,6 +117,15 @@ def train(start_date, end_date, ticker_list, data_source, time_interval,
         raise ValueError('DRL library input is NOT supported. Please check.')
 
 
+# import DRL agents
+from agents.stablebaselines3_models import DRLAgent as DRLAgent_sb3
+from agents.rllib_models import DRLAgent as DRLAgent_rllib
+from agents.elegantrl_models import DRLAgent as DRLAgent_erl
+
+# import data processor
+from meta.data_processor import DataProcessor
+
+
 def test(start_date, end_date, ticker_list, data_source, time_interval,
          technical_indicator_list, drl_lib, env, model_name, if_vix=True,
          **kwargs):
@@ -166,52 +188,11 @@ def test(start_date, end_date, ticker_list, data_source, time_interval,
         raise ValueError("DRL library input is NOT supported. Please check.")
 
 
-# 2. Set Parameters
-TICKER_LIST = [
-    "BTCUSDT",
-    "ETHUSDT",
-    # "ADAUSDT",
-    # "BNBUSDT",
-    # "XRPUSDT",
-    # "SOLUSDT",
-    # "DOTUSDT",
-    # "DOGEUSDT",
-    # "AVAXUSDT",
-    # "UNIUSDT",
-]
-
-time_interval = "1d"
-
-TRAIN_START_DATE = "2017-10-01"
-TRAIN_END_DATE = "2021-11-08"
-
-TEST_START_DATE = "2021-11-08"
-TEST_END_DATE = "2022-01-22"
-
-INDICATORS = [
-    "macd",
-    "rsi",
-    "cci",
-    "dx",
-]  # self-defined technical indicator list is NOT supported yet
-
-net_dimension = 2 ** 9
-
-ERL_PARAMS = {
-    "learning_rate": 2 ** -15,
-    "batch_size": 2 ** 11,
-    "gamma": 0.99,
-    "seed": 312,
-    "net_dimension": 2 ** 9,
-    "target_step": 5000,
-    "eval_gap": 30,
-    "eval_times": 1,
-}
+import numpy as np
+import math
 
 
-# 3. Create Multiple Cryptocurrencies Trading Env
-
-class CCCCryptoEnv:  # custom env
+class CryptoEnv:  # custom env
     def __init__(self, config, lookback=1, initial_capital=1e6,
                  buy_cost_pct=1e-3, sell_cost_pct=1e-3, gamma=0.99):
         self.lookback = lookback
@@ -226,15 +207,6 @@ class CCCCryptoEnv:  # custom env
         self._generate_action_normalizer()
         self.crypto_num = self.price_array.shape[1]
         self.max_step = self.price_array.shape[0] - lookback - 1
-
-        # add
-        self.amount = None
-        self.day = 0
-        self.day_price = None
-        self.price_ary = None
-        self.observation_space = None
-        self.action_space = None
-        self.shape = None
 
         # reset
         self.time = lookback - 1
@@ -265,59 +237,23 @@ class CCCCryptoEnv:  # custom env
         state = self.get_state()
         return state
 
-    # def step(self, aactions) -> (np.ndarray, float, bool, None):
-    #     self.time += 1
-    #     actions = np.expand_dims(aactions, axis=0)
-    #
-    #     price = self.price_array[self.time]
-    #     for i in range(self.action_dim):
-    #         norm_vector_i = self.action_norm_vector[i]
-    #         # print("--index", i, actions, actions.shape)
-    #
-    #         # print(actions.ndim)
-    #         # print(norm_vector_i)
-    #         # print("----")
-    #         # a = actions.squeeze()
-    #         print(actions, self.action_dim)
-    #         print(i, actions.shape, actions.ndim)
-    #         actions[i] = actions[i] * norm_vector_i
-    #         # actions[i] = actions[i]
-    #
-    #         # print("++index", i, actions)
-    #     for index in np.where(actions < 0)[0]:  # sell_index:
-    #         if price[index] > 0:  # Sell only if current asset is > 0
-    #             sell_num_shares = min(self.stocks[index], -actions[index])
-    #             self.stocks[index] -= sell_num_shares
-    #             self.cash += price[index] * sell_num_shares * (1 - self.sell_cost_pct)
-    #
-    #     for index in np.where(actions > 0)[0]:  # buy_index:
-    #         if price[index] > 0:  # Buy only if the price is > 0 (no missing data in this particular date)
-    #             buy_num_shares = min(self.cash // price[index], actions[index])
-    #             self.stocks[index] += buy_num_shares
-    #             self.cash -= price[index] * buy_num_shares * (1 + self.buy_cost_pct)
-    #
-    #     """update time"""
-    #     done = self.time == self.max_step
-    #     state = self.get_state()
-    #     next_total_asset = self.cash + (self.stocks * self.price_array[self.time]).sum()
-    #     reward = (next_total_asset - self.total_asset) * 2 ** -16
-    #     self.total_asset = next_total_asset
-    #     self.gamma_return = self.gamma_return * self.gamma + reward
-    #     self.cumu_return = self.total_asset / self.initial_cash
-    #     if done:
-    #         reward = self.gamma_return
-    #         self.episode_return = self.total_asset / self.initial_cash
-    #     return state, reward, done, None
-
-    #old
     def step(self, actions) -> (np.ndarray, float, bool, None):
         self.time += 1
 
         price = self.price_array[self.time]
         for i in range(self.action_dim):
             norm_vector_i = self.action_norm_vector[i]
-            actions[i] = actions[i] * norm_vector_i
+            # print("--index", i, actions, actions.shape)
 
+            # print(actions.ndim)
+            # print(norm_vector_i)
+            # print("----")
+            a = actions.squeeze()
+            # print(a.shape, a.ndim)
+            actions[i] = actions[i] * norm_vector_i
+            # actions[i] = actions[i]
+
+            # print("++index", i, actions)
         for index in np.where(actions < 0)[0]:  # sell_index:
             if price[index] > 0:  # Sell only if current asset is > 0
                 sell_num_shares = min(self.stocks[index], -actions[index])
@@ -325,9 +261,7 @@ class CCCCryptoEnv:  # custom env
                 self.cash += price[index] * sell_num_shares * (1 - self.sell_cost_pct)
 
         for index in np.where(actions > 0)[0]:  # buy_index:
-            if (
-                    price[index] > 0
-            ):  # Buy only if the price is > 0 (no missing data in this particular date)
+            if price[index] > 0:  # Buy only if the price is > 0 (no missing data in this particular date)
                 buy_num_shares = min(self.cash // price[index], actions[index])
                 self.stocks[index] += buy_num_shares
                 self.cash -= price[index] * buy_num_shares * (1 + self.buy_cost_pct)
@@ -336,7 +270,7 @@ class CCCCryptoEnv:  # custom env
         done = self.time == self.max_step
         state = self.get_state()
         next_total_asset = self.cash + (self.stocks * self.price_array[self.time]).sum()
-        reward = (next_total_asset - self.total_asset) * 2 ** -16  # why?
+        reward = (next_total_asset - self.total_asset) * 2 ** -16
         self.total_asset = next_total_asset
         self.gamma_return = self.gamma_return * self.gamma + reward
         self.cumu_return = self.total_asset / self.initial_cash
@@ -344,7 +278,6 @@ class CCCCryptoEnv:  # custom env
             reward = self.gamma_return
             self.episode_return = self.total_asset / self.initial_cash
         return state, reward, done, None
-
 
     def get_state(self):
         state = np.hstack((self.cash * 2 ** -18, self.stocks * 2 ** -3))
@@ -368,99 +301,94 @@ class CCCCryptoEnv:  # custom env
         self.action_norm_vector = np.asarray(action_norm_vector)
 
 
-initial_capital = 1e6
-# env = CryptoEnv
-env = CCCCryptoEnv
-# 4. Training
-start_time = time.time()
+# TICKER_LIST = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'BNBUSDT', 'XRPUSDT',
+#                'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'UNIUSDT']
 
-train(
-    drl_lib="stable_baselines3",  # "elegantrl",
-    env_train=env,
-    start_date=TRAIN_START_DATE,
-    end_date=TRAIN_END_DATE,
-    ticker_list=TICKER_LIST,
-    data_source="binance",
-    time_interval=time_interval,
-    technical_indicator_list=INDICATORS,
-    env=env,
-    model_name="a2c",  # "ppo",
-    current_working_dir="./test_ppo",
-    erl_params=ERL_PARAMS,
-    break_step=5e4,
-    if_vix=False,
-)
+TICKER_LIST = ['BTCUSDT', 'ETHUSDT']
+env = CryptoEnv
+TRAIN_START_DATE = '2017-11-10'
+TRAIN_END_DATE = '2022-09-01'
 
-duration_train = round((time.time() - start_time), 2)
+TEST_START_DATE = '2022-09-02'
+TEST_END_DATE = '2022-11-2'
 
-# 5. Testing
-start_time = time.time()
+INDICATORS = ['macd', 'rsi', 'cci', 'dx']  # self-defined technical indicator list is NOT supported yet
 
-account_value_erl = test(
-    start_date=TEST_START_DATE,
-    end_date=TEST_END_DATE,
-    ticker_list=TICKER_LIST,
-    data_source="binance",
-    time_interval=time_interval,
-    technical_indicator_list=INDICATORS,
-    drl_lib="elegantrl",
-    env=env,
-    model_name="ppo",
-    current_working_dir="./test_ppo",
-    net_dimension=net_dimension,
-    if_vix=False,
-)
+ERL_PARAMS = {"learning_rate": 2 ** -15, "batch_size": 2 ** 11,
+              "gamma": 0.99, "seed": 312, "net_dimension": 2 ** 9,
+              "target_step": 5000, "eval_gap": 30, "eval_times": 1, "learner_gpus": -1
+              }
 
-duration_test = round((time.time() - start_time), 2)
+train(start_date=TRAIN_START_DATE,
+      end_date=TRAIN_END_DATE,
+      ticker_list=TICKER_LIST,
+      data_source='binance',  # 'yahoofinance',  # 'binance',
+      time_interval='1h',  # '1D',  # '5m',
+      technical_indicator_list=INDICATORS,
+      drl_lib='elegantrl',
+      env=env,
+      model_name='ppo',  # 'ppo', 'a2c'
+      current_working_dir='./test_ppo',
+      erl_params=ERL_PARAMS,
+      break_step=5e4,
+      if_vix=False,
+      repeat_times=10,
+      )
 
-# 6. Plotting
-get_ipython().run_line_magic("matplotlib", "inline")
+account_value_erl = test(start_date=TEST_START_DATE,
+                         end_date=TEST_END_DATE,
+                         ticker_list=TICKER_LIST,
+                         data_source='binance',  # 'yahoofinance',  # 'binance',
+                         time_interval='1d',  # '1D',  # '5m',
+                         technical_indicator_list=INDICATORS,
+                         drl_lib='elegantrl',
+                         env=env,
+                         model_name='ppo',  # 'ppo', 'a2c'
+                         current_working_dir='./test_ppo',
+                         net_dimension=2 ** 9,
+                         if_vix=False,
+                         batch_size=1024,
+                         repeat_times=10,
+                         )
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import matplotlib.dates as mdates
+
+# % matplotlib
+# inline
 # calculate agent returns
 account_value_erl = np.array(account_value_erl)
 agent_returns = account_value_erl / account_value_erl[0]
-
 # calculate buy-and-hold btc returns
-price_array = np.load("./price_array.npy")
+price_array = np.load('./price_array.npy')
 btc_prices = price_array[:, 0]
 buy_hold_btc_returns = btc_prices / btc_prices[0]
-
 # calculate equal weight portfolio returns
-price_array = np.load("./price_array.npy")
+price_array = np.load('./price_array.npy')
 initial_prices = price_array[0, :]
 equal_weight = np.array([1e5 / initial_prices[i] for i in range(len(TICKER_LIST))])
 equal_weight_values = []
-
 for i in range(0, price_array.shape[0]):
     equal_weight_values.append(np.sum(equal_weight * price_array[i]))
-
 equal_weight_values = np.array(equal_weight_values)
 equal_returns = equal_weight_values / equal_weight_values[0]
-
 # plot
 plt.figure(dpi=200)
 plt.grid()
-plt.grid(which="minor", axis="y")
-plt.title("Cryptocurrency Trading ", fontsize=12)
-plt.plot(agent_returns, label="Trained RL Agent", color="red")
-plt.plot(buy_hold_btc_returns, label="Buy-and-Hold BTC", color="blue")
-plt.plot(equal_returns, label="Equal Weight Portfolio", color="green")
-plt.ylabel("Return", fontsize=10)
-plt.xlabel("Times (%s)" % time_interval, fontsize=10)
-plt.xticks(size=10)
-plt.yticks(size=10)
-
-"""ax = plt.gca()
+plt.grid(which='minor', axis='y')
+plt.title('Cryptocurrency Trading ', fontsize=20)
+plt.plot(agent_returns, label='ElegantRL Agent', color='red')
+plt.plot(buy_hold_btc_returns, label='Buy-and-Hold BTC', color='blue')
+plt.plot(equal_returns, label='Equal Weight Portfolio', color='green')
+plt.ylabel('Return', fontsize=16)
+plt.xlabel('Times (5min)', fontsize=16)
+plt.xticks(size=14)
+plt.yticks(size=14)
+'''ax = plt.gca()
 ax.xaxis.set_major_locator(ticker.MultipleLocator(210))
 ax.xaxis.set_minor_locator(ticker.MultipleLocator(21))
 ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.005))
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
-ax.xaxis.set_major_formatter(ticker.FixedFormatter([]))"""
-
-plt.legend(fontsize=8)
-
-print("TRAIN_START_DATE: ", TRAIN_START_DATE, "   TRAIN_END_DATE: ", TRAIN_END_DATE)
-print("TEST_START_DATE: ", TEST_START_DATE, "   TEST_END_DATE: ", TEST_END_DATE)
-print("Time_Interval: ", time_interval)
-print("ERL_PARAMS: ", ERL_PARAMS)
-print("Episode_Total_Return: ", account_value_erl[-1] / initial_capital)
+ax.xaxis.set_major_formatter(ticker.FixedFormatter([]))'''
+plt.legend(fontsize=10.5)
