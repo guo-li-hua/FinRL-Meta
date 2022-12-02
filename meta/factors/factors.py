@@ -187,37 +187,37 @@ class MomentumFactors:
     # 单日价量趋势  'ic_mean': '-0.051037'
     def single_day_vpt(df):
         # （今日收盘价 - 昨日收盘价）/ 昨日收盘价 * 当日成交量  # (复权方法为基于当日前复权)
-        sft = df["close_price"].shift(1)
-        return (df["close_price"] - sft) / sft * df["volume"]
+        sft = df["close"].shift(1)
+        return (df["close"] - sft) / sft * df["volume"]
 
     # 单日价量趋势6日均值 'ic_mean': '-0.032458'
     def single_day_vpt_6(df):
         # ma(single_day_VPT, 6)
-        sft = df["close_price"].shift(1)
-        return pd.Series(ma((df["close_price"] - sft) / sft * df["volume"], 6))
+        sft = df["close"].shift(1)
+        return pd.Series(ma((df["close"] - sft) / sft * df["volume"], 6))
 
     # 单日价量趋势12均值 'ic_mean': '-0.031016'
     def single_day_vpt_12(df):
         # ma(single_day_VPT, 12)
-        sft = df["close_price"].shift(1)
-        return pd.Series(ma((df["close_price"] - sft) / sft * df["volume"], 12))
+        sft = df["close"].shift(1)
+        return pd.Series(ma((df["close"] - sft) / sft * df["volume"], 12))
 
     # 10日顺势指标 'ic_mean': '-0.038179'
     def cci_10_days(df, N=10):
         #  CCI:=(TYP-ma(TYP,N))/(0.015*avedev(TYP,N)) TYP:=(HIGH+LOW+CLOSE)/3 N:=10
-        TYP = (df["high_price"] + df["low_price"] + df["close_price"]) / 3
+        TYP = (df["high"] + df["low"] + df["close"]) / 3
         return (TYP - ma(TYP, N)) / (0.015 * avedev(TYP, N))
 
     # 15日顺势指标 'ic_mean': '-0.035973'
     def cci_15_days(df, N=15):
         #  CCI:=(TYP-ma(TYP,N))/(0.015*avedev(TYP,N)) TYP:=(HIGH+LOW+CLOSE)/3 N:=15
-        TYP = (df["high_price"] + df["low_price"] + df["close_price"]) / 3
+        TYP = (df["high"] + df["low"] + df["close"]) / 3
         return (TYP - ma(TYP, N)) / (0.015 * avedev(TYP, N))
 
     # 20日顺势指标 'ic_mean': '-0.033437'
     def cci_20_days(df, N=20):
         # CCI:=(TYP-ma(TYP,N))/(0.015*avedev(TYP,N)) TYP:=(HIGH+LOW+CLOSE)/3 N:=20
-        TYP = (df["high_price"] + df["low_price"] + df["close_price"]) / 3
+        TYP = (df["high"] + df["low"] + df["close"]) / 3
         return (TYP - ma(TYP, N)) / (0.015 * avedev(TYP, N))
 
     # 当前交易量相比过去1个月日均交易量 与过去过去20日日均收益率乘积 'ic_mean': '-0.032789'
@@ -328,7 +328,7 @@ class EmotionFactors:
     # 6日成交金额的移动平均值 'ic_mean': '-0.038'
     def tvma_6_days(df, N=6):
         # 6日成交金额的移动平均值
-        trades = df["close_price"] * df["volume"]
+        trades = df["close"] * df["volume"]
         return pd.Series(ma(trades, N))
 
     # 威廉变异离散量 'ic_mean': '-0.031'
@@ -400,8 +400,8 @@ class generalFactors:
 
     def kdj(df, KDJ_type, N=9, M1=3, M2=3):  # KDJ指标
         RSV = (
-                (df["close_price"] - llv(df["low_price"], N))
-                / (hhv(df["high_price"], N) - llv(df["low_price"], N))
+                (df["close"] - llv(df["low"], N))
+                / (hhv(df["high"], N) - llv(df["low"], N))
                 * 100
         )
         K = ema(RSV, (M1 * 2 - 1))
@@ -446,10 +446,10 @@ class generalFactors:
     def atr(df, N=20):  # 真实波动N日平均值
         TR = np.maximum(
             np.maximum(
-                (df["high_price"] - df["low_price"]),
-                np.abs(ref(df["close_price"], 1) - df["high_price"]),
+                (df["high"] - df["low"]),
+                np.abs(ref(df["close"], 1) - df["high"]),
             ),
-            np.abs(ref(df["close_price"], 1) - df["low_price"]),
+            np.abs(ref(df["close"], 1) - df["low"]),
         )
         return ma(TR, N)
 
@@ -560,8 +560,8 @@ class generalFactors:
     def brar(df, M1=26):  # BRAR-ARBR 情绪指标
         # AR = series_sum(HIGH - OPEN, M1) / series_sum(OPEN - LOW, M1) * 100
         return (
-                series_sum(np.maximum(0, df["high_price"] - ref(df["close_price"], 1)), M1)
-                / series_sum(np.maximum(0, ref(df["close_price"], 1) - df["low_price"]), M1)
+                series_sum(np.maximum(0, df["high"] - ref(df["close"], 1)), M1)
+                / series_sum(np.maximum(0, ref(df["close"], 1) - df["low"]), M1)
                 * 100
         )
         # return AR, BR
@@ -610,7 +610,7 @@ class generalFactors:
         )
 
     def mfi(df, N=14):  # MFI指标是成交量的RSI指标
-        TYP = (df["high_price"] + df["low_price"] + df["close_price"]) / 3
+        TYP = (df["high"] + df["low"] + df["close"]) / 3
         V1 = series_sum(
             np.where(TYP > ref(TYP, 1), TYP * df["volume"], 0), N
         ) / series_sum(np.where(TYP < ref(TYP, 1), TYP * df["volume"], 0), N)
