@@ -1,0 +1,179 @@
+<html>
+
+<head>
+    <style>
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 1px solid #c0c0c0;
+        }
+
+        th,
+        td {
+            border: 1px solid #d0d0d0;
+            color: #404060;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #09c;
+            font: bold 16px "微软雅黑";
+            color: #fff;
+        }
+
+        td {
+            font: 14px "微软雅黑";
+        }
+
+        tbody tr {
+            background-color: #f0f0f0;
+        }
+
+        tbody tr:hover {
+            cursor: pointer;
+            background-color: #fafafa;
+        }
+    </style>
+    <script>
+    function tradeReq()
+    {      
+        var xmlhttp;
+        if (window.XMLHttpRequest)
+        {
+            //  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+            xmlhttp=new XMLHttpRequest();
+        }
+        else
+        {
+            // IE6, IE5 浏览器执行代码
+            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange=function()
+        {
+            // alert(xmlhttp.status)
+            // alert(xmlhttp.responseText)
+            if (xmlhttp.readyState==4 && xmlhttp.status==200) 
+            {
+                document.getElementById("myDiv").innerHTML=xmlhttp.responseText;
+                
+                var respons = '{"date":{"0":"2022-11-23","1":"2022-11-24","2":"2022-11-25","3":"2022-11-28","4":"2022-11-29","5":"2022-11-30","6":"2022-12-01","7":"2022-12-02","8":"2022-12-05","9":"2022-12-06","10":"2022-12-07","11":"2022-12-08","12":"2022-12-09","13":"2022-12-12","14":"2022-12-13","15":"2022-12-14","16":"2022-12-15","17":"2022-12-16"},"actions":{"0":[10000],"1":[9300],"2":[-10000],"3":[9600],"4":[-10000],"5":[7100],"6":[3000],"7":[-10000],"8":[9700],"9":[-10000],"10":[-3600],"11":[10000],"12":[3300],"13":[-9100],"14":[-9300],"15":[10000],"16":[4600],"17":[3400]}}';
+
+                var obj = JSON.parse(respons)
+                var str = "";
+                // alert(obj.date['1'])     
+                
+                for(var item in obj.date) {
+                    // console.log(item);  // 这里获取的是索引
+                    str += "<tr><td>"+item+"</td><td>"+obj.date[item]+"</td><td>"+obj.actions[item]+"</td></tr>";
+                    // console.log(a[item]) // 这样才获取的值
+                }
+                document.getElementById("j_tbData").innerHTML = str
+                // $("#j_tbData").html(str);
+            }
+        }
+
+        var tickerSel=document.getElementById("ticker");
+        var index=tickerSel.selectedIndex
+        var ticker = tickerSel.options[index].value
+
+        var modelSel=document.getElementById("model");
+        var index=modelSel.selectedIndex
+        var model = modelSel.options[index].value
+
+        var start=document.getElementById("start").value;
+        var end=document.getElementById("end").value;
+
+    
+        // var paramReq = JSON.stringify({
+        //     'ticker': ticker,
+        //     'model':model, 'model':model,
+        //     'start':start,
+        //     'end':end,
+        // })
+
+        
+        var paramStr ='?ticker='+ ticker + '&model='+model +'&start='+start +'&end='+end ;
+        // alert(paramStr)
+
+   
+        
+
+      
+
+
+        // xmlhttp.open("GET","/try/ajax/ajax_info.txt",true);
+        // xmlhttp.open("GET","http://127.0.0.1:5000/data/trade"+paramStr, true);
+        xmlhttp.open("GET","http://www.liulongbin.top:3006/api/getbooks",true);
+        // xmlhttp.setRequestHeader("Content-type","application/json");
+        // xmlhttp.setRequestHeader("Access-Control-Allow-Origin","*")
+        
+        // xmlhttp.send(paramReq);
+        // xmlhttp.send('ticker=000009.SH&model=a2c');
+
+        xmlhttp.send();
+
+    }
+    </script>
+</head>
+
+<body>
+    <h2>AI股票预测</h2>
+    <form>
+        股票选择:<br>
+        <select id="ticker" name="tickers">
+            <option value="600009.SH" selected="selected">600009</option>
+            <option value="600016.SH">600016</option>
+            <option value="600028.SH">600028</option>
+        </select>
+        <br>     
+        <br>
+    
+        模型选择:<br>  
+        <select id="model" name="models">
+            <option value="a2c" selected="selected">A2c</option>
+            <option value="ddpg">Ddpg</option>
+            <option value="ppo">Ppo</option>
+            <option value="sac">Sac</option>
+        </select>
+        <br> 
+
+        <br>
+        预测日期:
+        <input id="start" type="date" name="start" value="2022-11-21">
+        <input id="end" type="date" name="end" value="2022-12-26">
+
+        <br><br>
+        <button id="btnGET" type="button" onclick="tradeReq()">预测执行</button>
+        <!-- <script>
+        $(function () {
+            $('#btnGET').on('click', function () {
+            $.get('http://www.liulongbin.top:3006/api/getbooks', { id: 2 }, function (res) {
+            console.log('res');
+            })
+            })
+        })
+        </script> -->
+    
+
+    </form>
+    <h2>预测结果</h2>
+    <div id="myDiv"><p></p></div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>索引</th>
+                <th>日期</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="j_tbData">
+            <!--<tr>-->
+            <!--<td>1</td>-->
+            <!--<td>2</td>-->
+            <!--<td>3</td>-->
+            <!--</tr>-->
+        </tbody>
+    </table>
+</body>
+</html>
