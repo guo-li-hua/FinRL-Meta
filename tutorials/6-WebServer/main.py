@@ -75,7 +75,12 @@ def data_train():
     env = pro.process_env(p, time_list['train_start_date'], time_list['train_end_date'])
     # agent, mod = agent_ddpg(env)
     agent, mod = pro.agent_a2c(env)
-    # trained_model = data_train(agent, mod, "train")
+
+    ticker = cfg.ticker_list_get()[0].replace('.', '')
+    model_name_a2c = 'train_a2c_' + ticker + '_0'
+    # model_name_ddpg = 'train_ddpg_' + ticker + '_0'
+
+    trained_model = pro.data_train(agent, mod, model_name_a2c)
 
     return {
         "result": 'OK',
@@ -87,6 +92,8 @@ from flask import make_response
 
 @app.route('/data/trade', methods=['GET', 'POST', 'PUT'])
 def data_trade():
+    time_list = cfg.time_list_get()
+    # ticker_list = cfg.ticker_list_get()
     # data = request.args.get('data')
     # image = request.form["image"]
     print("data_trade enter...")
@@ -95,17 +102,41 @@ def data_trade():
     start = request.args.get('start')
     end = request.args.get('end')
 
+    if start=='':
+        start = time_list['trade_start_date']
+    if end == '':
+        end = time_list['trade_end_date']
+
+    ticker_list = [ticker]
     print(ticker, model, start, end)
 
-    time_list = cfg.time_list_get()
-    p = pro.data_process_creat(time_list['trade_start_date'], time_list['trade_end_date'])  # all
-    pro.reload_data(p)
+    #download data
+    p = pro.data_process_creat(start, end)  # trade
+    pro.download_data(ticker_list, p)
+
+
+    # p = pro.data_process_creat(time_list['trade_start_date'], time_list['trade_end_date'])  # all
+    # p = pro.data_process_creat(start, end)  # all
+    # pro.reload_data(p)
     pro.add_technical_factor(p)
 
-    env = pro.process_env(p, time_list['trade_start_date'], time_list['trade_end_date'])
-    agent, mod = pro.agent_a2c(env)
+    env = pro.process_env(p, start, end)
 
-    trained_model = pro.load_model_file(mod, 'train_10k_0.zip')
+    model_name = ''
+    agent, mod = pro.agent_a2c(env)  # default
+    if model == 'a2c':
+        model_name += 'train_a2c_' + ticker.replace('.', '') + '_0.zip'
+        print("model name", model_name)
+        agent, mod = pro.agent_a2c(env)
+        # trained_model = pro.load_model_file(mod, model_name)
+        # trained_model = pro.load_model_file(mod, 'train_10k_0.zip')
+    elif model == 'ddpg':
+        model_name += 'train_ddpg_' + ticker.replace('.', '') + '_0.zip'
+        print("model name", model_name)
+        agent, mod = pro.agent_ddpg(env)
+        # trained_model = pro.load_model_file(mod, model_name)
+
+    trained_model = pro.load_model_file(mod, model_name)
 
     trade, account_value, actions = pro.data_predict(p, trained_model, time_list['trade_start_date'],
                                                      time_list['trade_end_date'])
@@ -119,6 +150,7 @@ def data_trade():
     #     "status": 200,
     #     "msg": actions.to_json(),
     # }
+
 
 if __name__ == '__main__':
     app.debug = True

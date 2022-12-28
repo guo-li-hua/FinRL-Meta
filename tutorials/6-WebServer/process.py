@@ -106,7 +106,7 @@ def process_env(p, start, end):
     train = common.data_process(p, start, end, 0)
     stock_dimension = len(train.tic.unique())
     state_space = stock_dimension * (len(indicators) + 2) + 1
-    print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
+    # print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
 
     env_kwargs = common.env_kwargs(train)
     e_train_gym = StockTradingEnv(df=train, **env_kwargs)
@@ -172,8 +172,9 @@ def load_model_file(model, name):
 def data_predict(p, model, start, end):
     ### Trade
     time_list = cfg.time_list_get()
+    print(p.dataframe)
     trade = p.data_split(p.dataframe, start, end)
-    print("trade.......")
+    print("data_predict.......")
     print(trade)
     env_kwargs = common.env_kwargs(trade)
     e_trade_gym = StockTradingEnv(df=trade, **env_kwargs)
@@ -252,16 +253,22 @@ def test_run():
     download_data(cfg.ticker_list_get(), p)
     add_technical_factor(p)
 
+    ticker = cfg.ticker_list_get()[0].replace('.','')
+    model_name_a2c = 'train_a2c_' + ticker + '_0'
+    model_name_ddpg = 'train_ddpg_' + ticker + '_0'
+    # print("model name",model_name_a2c, ":",  model_name_ddpg)
     env = process_env(p, time_list['train_start_date'], time_list['train_end_date'])
     # agent, mod = agent_ddpg(env)
+    # trained_model = data_train(agent, mod, model_name_ddpg)
     agent, mod = agent_a2c(env)
-    # trained_model = data_train(agent, mod, "train")
+    trained_model = data_train(agent, mod, model_name_a2c)
 
-    trained_model = load_model_file(mod, 'train_10k_0.zip')
+    # trained_model = load_model_file(mod, model_name_a2c)
 
     trade, account_value, actions = data_predict(p, trained_model, time_list['trade_start_date'],
                                                  time_list['trade_end_date'])
 
     back_test(trade, account_value, actions)
 
-    exit()
+# test_run()
+

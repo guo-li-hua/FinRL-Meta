@@ -41,14 +41,15 @@ def data_process(p, start, end, del_cnt=0):
     # 丢弃前n个数据，避免数据为0影响训练结果
     if del_cnt != 0:
         p.dataframe = p.dataframe.iloc[20:, :].reset_index(drop=True)
-        print(f"p.dataframe: {p.dataframe}")
+        # print(f"p.dataframe: {p.dataframe}")
 
     # train = p.data_split(p.dataframe, time_list['train_start_date'], time_list['train_end_date'])
     train = p.data_split(p.dataframe, start, end)
-    print(f"len(train.tic.unique()): {len(train.tic.unique())}")
+    # print(f"len(train.tic.unique()): {len(train.tic.unique())}")
 
     print(f"train.tic.unique(): {train.tic.unique()}")
     print(f"train.head(): {train.head()}")
+    print(f"train.tail(): {train.tail()}")
     print(f"train.shape: {train.shape}")
     return train
 

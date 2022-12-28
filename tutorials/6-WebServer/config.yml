@@ -29,7 +29,7 @@ time_list:
   train_start_date: '2015-01-01'
   train_end_date: '2022-11-20'
   trade_start_date: '2022-11-21'
-  trade_end_date: '2022-12-20'
+  trade_end_date: '2022-12-28'
   time_interval: 1d
 
 # data
