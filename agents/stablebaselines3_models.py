@@ -88,7 +88,7 @@ class DRLAgent:
                 mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions)
             )
         print(model_kwargs)
-        model = MODELS[model_name](
+        model = MODELS[model_name](  #A2C( #DDPG   SAC  PPO
             policy=policy,
             env=self.env,
             tensorboard_log=f"{config.TENSORBOARD_LOG_DIR}/{model_name}",
@@ -97,6 +97,19 @@ class DRLAgent:
             seed=seed,
             **model_kwargs,
         )
+
+
+        # A2C( #DDPG   SAC  PPO
+        #     policy=policy,
+        #     env=self.env,
+        #     tensorboard_log=f"{config.TENSORBOARD_LOG_DIR}/{model_name}",
+        #     verbose=verbose,
+        #     policy_kwargs=policy_kwargs,
+        #     seed=seed,
+        #     **model_kwargs,
+        # )
+
+
         return model
 
     def train_model(self, model, tb_log_name, total_timesteps=5000):
@@ -104,6 +117,12 @@ class DRLAgent:
             total_timesteps=total_timesteps,
             tb_log_name=tb_log_name,
             callback=TensorboardCallback(),
+        )
+        # model.save(
+        #     f"{config.TRAINED_MODEL_DIR}/{tb_log_name}_{total_timesteps//1000}k_0"
+        # )
+        model.save(
+            f"{config.TRAINED_MODEL_DIR}/{tb_log_name}"
         )
         return model
 
@@ -115,7 +134,7 @@ class DRLAgent:
         actions_memory = []
         test_env.reset()
         for i in range(len(environment.df.index.unique())):
-            action, _states = model.predict(test_obs)
+            action, _states = model.predict(test_obs, deterministic=True)
             # account_memory = test_env.env_method(method_name="save_asset_memory")
             # actions_memory = test_env.env_method(method_name="save_action_memory")
             test_obs, rewards, dones, info = test_env.step(action)
@@ -159,7 +178,6 @@ class DRLAgent:
         print("episode_return", episode_return)
         print("Test Finished!")
         return episode_total_assets
-
 
 class DRLEnsembleAgent:
     @staticmethod
