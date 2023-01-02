@@ -193,7 +193,7 @@ class StockTradingEnv(gym.Env):
 
     def step(self, actions):
         self.terminal = self.day >= len(self.df.index.unique()) - 1
-        if self.terminal:
+        if self.terminal: #no
             print(f"Episode: {self.episode}")
             if self.make_plots:
                 self._make_plot()
@@ -269,11 +269,11 @@ class StockTradingEnv(gym.Env):
 
         else:
 
-            actions = actions * self.hmax  # actions initially is scaled between 0 to 1
+            actions = actions * self.hmax  # actions initially is scaled between 0 to 1, 每次交易最大额度
             actions = actions.astype(
                 int
             )  # convert into integer because we can't by fraction of shares
-            if self.turbulence_threshold is not None:
+            if self.turbulence_threshold is not None:  #震荡阈值
                 if self.turbulence >= self.turbulence_threshold:
                     actions = np.array([-self.hmax] * self.stock_dim)
             begin_total_asset = self.state[0] + sum(
@@ -477,7 +477,8 @@ class StockTradingEnv(gym.Env):
             df_actions.index = df_date.date
             # df_actions = pd.DataFrame({'date':date_list,'actions':action_list})
         else:
-            date_list = self.date_memory[:-1]
+            # date_list = self.date_memory[:-1]
+            date_list = self.date_memory[1:]
             action_list = self.actions_memory
             df_actions = pd.DataFrame({"date": date_list, "actions": action_list})
         return df_actions

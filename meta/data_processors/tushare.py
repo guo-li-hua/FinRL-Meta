@@ -26,12 +26,12 @@ class Tushare(_Base):
     """
 
     def __init__(
-        self,
-        data_source: str,
-        start_date: str,
-        end_date: str,
-        time_interval: str,
-        **kwargs,
+            self,
+            data_source: str,
+            start_date: str,
+            end_date: str,
+            time_interval: str,
+            **kwargs,
     ):
         super().__init__(data_source, start_date, end_date, time_interval, **kwargs)
         assert "token" in kwargs.keys(), "Please input token!"
@@ -106,6 +106,7 @@ class Tushare(_Base):
         print("Shape of DataFrame: ", self.dataframe.shape)
 
     def clean_data(self):
+        #print("clean_data, ---Shape of DataFrame: ", self.dataframe.shape)
         dfc = copy.deepcopy(self.dataframe)
 
         dfcode = pd.DataFrame(columns=["tic"])
@@ -152,7 +153,7 @@ class Tushare(_Base):
         # reshape dataframe
         df3 = df3.sort_values(by=["date", "tic"]).reset_index(drop=True)
 
-        print("Shape of DataFrame: ", df3.shape)
+        print("clean_data, Shape of DataFrame: ", df3.shape)
 
         self.dataframe = df3
 
@@ -244,7 +245,7 @@ class Tushare(_Base):
         :param data: (df) pandas dataframe, start, end
         :return: (df) pandas dataframe
         """
-        data = df[(df[target_date_col] >= start) & (df[target_date_col] < end)]
+        data = df[(df[target_date_col] >= start) & (df[target_date_col] <= end)]
         data = data.sort_values([target_date_col, "tic"], ignore_index=True)
         data.index = data[target_date_col].factorize()[0]
         return data
@@ -422,3 +423,30 @@ class ReturnPlotter:
         df.set_index("date", inplace=True, drop=True)
         df.index = df.index.tz_localize("UTC")
         return pd.Series(df["daily_return"], index=df.index)
+
+    # the first plot is the actual close price with long/short positions
+    # 绘制实际的股票收盘数据
+    def plot_back(self, tradedata, actionsdata, ticker):
+        # print(tradedata)
+        # print(actionsdata)
+        actions = 'actions'
+
+        df_plot = pd.merge(left=tradedata, right=actionsdata, on='date', how='inner')
+        # print(df_plot)
+        # plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', ticker]].reset_index()
+        plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', 'actions']].reset_index()
+        fig = plt.figure(figsize=(12, 6))
+        ax = fig.add_subplot(111)
+        ax.plot(plot_df.index, plot_df['close'], label=ticker)
+        # 只显示时刻点，不显示折线图 => 设置 linewidth=0
+        ax.plot(plot_df.loc[plot_df['actions'] > 0].index, plot_df['close'][plot_df['actions'] > 0], label='Buy',
+                linewidth=0, marker='^', c='g')
+        ax.plot(plot_df.loc[plot_df['actions'] < 0].index, plot_df['close'][plot_df['actions'] < 0], label='Sell',
+                linewidth=0, marker='v', c='r')
+
+        plt.legend(loc='best')
+        plt.grid(True)
+        plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
+        plt.show()
+        # print(plot_df.loc[df_plot['actions'] > 0])
+        plt.savefig("./results/plot_back.png")

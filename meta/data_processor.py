@@ -226,11 +226,11 @@ class DataProcessor:
                 elif fact == "dmi":
                     tic_df['dmi'] = general.dmi(tic_df, "DMI_PDI")
                 elif fact == "taq":
-                    tic_df['taq'] = general.taq(tic_df,"TAQ_MID")
+                    tic_df['taq'] = general.taq(tic_df, "TAQ_MID")
                 elif fact == "ktn":
-                    tic_df['ktn'] = general.ktn(tic_df,"KTN_mid")
+                    tic_df['ktn'] = general.ktn(tic_df, "KTN_mid")
                 elif fact == "trix":
-                    tic_df['trix'] = general.trix(tic_df['close'],"TRMA")
+                    tic_df['trix'] = general.trix(tic_df['close'], "TRMA")
                 elif fact == "vr":
                     tic_df['vr'] = general.vr(tic_df)
                 elif fact == "emv":
@@ -242,9 +242,9 @@ class DataProcessor:
                 elif fact == "dfma":
                     tic_df['dfma'] = general.dfma(tic_df['close'])
                 elif fact == "mtm":
-                    tic_df['mtm'] = general.mtm(tic_df['close'],"MTM")
+                    tic_df['mtm'] = general.mtm(tic_df['close'], "MTM")
                 elif fact == "mass":
-                    tic_df['mass'] = general.mass(tic_df,"MASS")
+                    tic_df['mass'] = general.mass(tic_df, "MASS")
                 elif fact == "obv":
                     tic_df['obv'] = general.obv(tic_df)
                 elif fact == "mfi":
@@ -282,7 +282,7 @@ class DataProcessor:
         :param data: (df) pandas dataframe, start, end
         :return: (df) pandas dataframe
         """
-        data = df[(df[target_date_col] >= start) & (df[target_date_col] < end)]
+        data = df[(df[target_date_col] >= start) & (df[target_date_col] <= end)]
         data = data.sort_values([target_date_col, "tic"], ignore_index=True)
         data.index = data[target_date_col].factorize()[0]
         return data
@@ -293,14 +293,10 @@ class DataProcessor:
             technical_indicator_list: List[str],
             if_vix: bool,
             cache: bool = False,
+            # file_dir: str = "./cache",
+            # file_name: str = "",
             select_stockstats_talib: int = 0,
     ):
-
-        if self.time_interval == "1s" and self.data_source != "binance":
-            raise ValueError(
-                "Currently 1s interval data is only supported with 'binance' as data source"
-            )
-
         cache_filename = (
                 "_".join(
                     ticker_list
@@ -315,6 +311,11 @@ class DataProcessor:
         )
         cache_dir = "./cache"
         cache_path = os.path.join(cache_dir, cache_filename)
+
+        if self.time_interval == "1s" and self.data_source != "binance":
+            raise ValueError(
+                "Currently 1s interval data is only supported with 'binance' as data source"
+            )
 
         if cache and os.path.isfile(cache_path):
             print(f"Using cached file {cache_path}")
@@ -351,50 +352,117 @@ class DataProcessor:
             self,
             ticker_list: str,
             cache: bool = False,
+            file_dir: str = "./cache",
+            file_name: str = "",
 
     ):
+        file_path = os.path.join(file_dir, file_name)
         if self.time_interval == "1s" and self.data_source != "binance":
             raise ValueError(
                 "Currently 1s interval data is only supported with 'binance' as data source"
             )
 
-        cache_filename = (
-                "_".join(
-                    ticker_list
-                    + [
-                        self.data_source,
-                        self.start_date,
-                        self.end_date,
-                        self.time_interval,
-                    ]
-                )
-                + ".pickle"
-        )
-        cache_dir = "./cache"
-        cache_path = os.path.join(cache_dir, cache_filename)
+        # cache_filename = (
+        #         "_".join(
+        #             ticker_list
+        #             + [
+        #                 self.data_source,
+        #                 self.start_date,
+        #                 self.end_date,
+        #                 self.time_interval,
+        #             ]
+        #         )
+        #         + ".pickle"
+        # )
+        # cache_dir = "./cache"
+        # cache_path = os.path.join(cache_dir, cache_filename)
 
-        if cache and os.path.isfile(cache_path):
-            print(f"Using cached file {cache_path}")
+        if cache and os.path.isfile(file_path):
+            print(f"Using cached file {file_path}")
             # self.tech_indicator_list = technical_indicator_list
-            with open(cache_path, "rb") as handle:
+            with open(file_path, "rb") as handle:
                 self.processor.dataframe = pickle.load(handle)
                 self.dataframe = self.processor.dataframe
         else:
             self.download_data(ticker_list)
             self.clean_data()
-            print(self.dataframe)
+            # print(self.dataframe)
             if cache:
-                if not os.path.exists(cache_dir):
-                    os.mkdir(cache_dir)
-                with open(cache_path, "wb") as handle:
+                if not os.path.exists(file_dir):
+                    os.mkdir(file_dir)
+                with open(file_path, "wb") as handle:
                     pickle.dump(
                         self.dataframe,
                         handle,
                         protocol=pickle.HIGHEST_PROTOCOL,
                     )
-                self.dataframe.to_csv(cache_path + ".csv", index=False)
+                self.dataframe.to_csv(file_path + ".csv", index=False)
 
         print(self.dataframe)
+
+    def run_fileload(
+            self,
+            if_vix: bool = False,
+            file_dir: str = "./cache",
+            file_name: str = "",
+    ):
+        cache_path = os.path.join(file_dir, file_name)
+        if os.path.isfile(cache_path):
+            # print(f"Using cached file {cache_path}")
+            # self.processor.dataframe = pd.read_csv(cache_path, parse_dates=['date'])
+            with open(cache_path, "rb") as handle:
+                self.processor.dataframe = pickle.load(handle)
+                self.dataframe = self.processor.dataframe
+
+        # self.add_technical_indicator(technical_indicator_list, select_stockstats_talib)
+        if if_vix:
+            self.add_vix()
+
+    def data_load(
+            self,
+            ticker_list: str,
+            technical_indicator_list: List[str],
+            if_vix: bool = False,
+            file_dir: str = "./cache",
+            file_name: str = "",
+            select_stockstats_talib: int = 0,
+    ):
+        self.tech_indicator_list = technical_indicator_list
+        load_file_dir = file_dir
+        load_file_name = ""
+        if file_name != "":
+            load_file_name = file_name
+        else:
+            tmp_filename = (
+                    "_".join(
+                        ticker_list
+                        + [
+                            self.data_source,
+                            self.start_date,
+                            self.end_date,
+                            self.time_interval,
+                        ]
+                    )
+                    + ".csv"
+            )
+            load_file_name = tmp_filename
+
+        cache_path = os.path.join(load_file_dir, load_file_name)
+        if os.path.isfile(cache_path):
+            print(f"Using cached file {cache_path}")
+            self.processor.dataframe = pd.read_csv(cache_path, parse_dates=['date'])
+            # with open(cache_path, "rb") as handle:
+            # self.processor.dataframe = pickle.load(handle)
+
+        self.add_technical_indicator(technical_indicator_list, select_stockstats_talib)
+        if if_vix:
+            self.add_vix()
+        price_array, tech_array, turbulence_array = self.df_to_array(if_vix)
+        tech_nan_positions = np.isnan(tech_array)
+        tech_array[tech_nan_positions] = 0
+
+        print(self.dataframe)
+        return price_array, tech_array, turbulence_array
 
 
 def test_joinquant():
