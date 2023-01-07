@@ -116,9 +116,6 @@ technical_indicator_list = [
     "rsi",
     "cci",
     "dx",
-    "bias_5_days",  #
-    "roc_6_days",  #
-    "vstd_10_days",  #
 ]
 
 if_vix = False
@@ -173,63 +170,62 @@ print(f"pro_df: {pro_df.head()}")
 print(f"pro_df: {pro_df.tail(2)}")
 # 添加因子
 factor_list = [
-    "bias_5_days",
-    "roc_6_days",
-    "vstd_10_days",
-
-    # # monentum
     # "bias_5_days",
-    # "bias_10_days",
-    # "bias_60_days",
-    # "price_1_month",
-    # "price_3_monthes"
     # "roc_6_days",
-    # "roc_12_days",
-    # "roc_20_days",
-    # "single_day_vpt",
-    # "single_day_vpt_6",
-    # "single_day_vpt_12",
-    # "cci_10_days",
-    # "cci_15_days",
-    # "cci_20_days",
-    # "bull_power",
-    # # emotion
     # "vstd_10_days",
-    # "vstd_20_days",
-    # "tvstd_6_days",
-    # "tvstd_20_days",
-    # "vema_5_days",
-    # "vema_10_days",
-    # "vosc",
-    # "vroc_6_days",
-    # "vroc_12_days",
-    # "tvma_6_days",
-    # "wvad",
-    # "ar",
-    # # extraFacters
-    # "rsrs",
-    # # generalFactors
-    # "macd",
-    # "kdj",
-    # "wr",
-    # "psy",
-    # "atr",
-    # "bbi",
-    # "dmi",
-    # "taq",
-    # "ktn",
-    # "trix",
-    # "vr",
-    # "emv",
-    # "dpo",
-    # "brar",
-    # "dfma",
-    # "mtm",
-    # "mass",
-    # "obv",
-    # "mfi",
-    # "asi",
-    # "xsii",
+
+    # monentum
+    "bias_5_days",
+    "bias_10_days",
+    "bias_60_days",
+    "price_1_month",
+    "price_3_monthes",
+    "roc_6_days",
+    "roc_12_days",
+    "roc_20_days",
+    "single_day_vpt",
+    "single_day_vpt_6",
+    "single_day_vpt_12",
+    "cci_10_days",
+    "cci_15_days",
+    "cci_20_days",
+    "bull_power",
+    # emotion
+    "vstd_10_days",
+    "vstd_20_days",
+    "tvstd_6_days",
+    "tvstd_20_days",
+    "vema_5_days",
+    "vema_10_days",
+    "vosc",
+    "vroc_6_days",
+    "vroc_12_days",
+    "tvma_6_days",
+    "wvad",
+    "ar",
+    # extraFacters
+    #"rsrs",
+    # generalFactors
+    "kdj",
+    "wr",
+    "psy",
+    "atr",
+    "bbi",
+    "dmi",
+    "taq",
+    "ktn",
+    "trix",
+    "vr",
+    "emv",
+    "dpo",
+    "brar",
+    "dfma",
+    "mtm",
+    "mass",
+    "obv",
+    "mfi",
+    "asi",
+    "xsii",
 
 ]
 # processed_df = pro_df
@@ -421,8 +417,7 @@ data_ohlcv = data_ohlcv.drop(
     axis=1,
 )
 
-state_dim = 15  # 增加技术指标，需要同步修改这里
-
+state_dim = 1 + len(technical_indicator_list) + len(factor_list)  # 增加技术指标，需要同步修改这里
 
 class Net(nn.Module):
     def __init__(self):
@@ -497,9 +492,63 @@ X = data[
         "macd_hist",
         "cci",
         "dx",
-        "bias_5_days",  #
-        "roc_6_days",  #
-        "vstd_10_days",  #
+        # "bias_5_days",  #
+        # "roc_6_days",  #
+        # "vstd_10_days",  #
+
+        # monentum
+        "bias_5_days",
+        "bias_10_days",
+        "bias_60_days",
+        "price_1_month",
+        "price_3_monthes",
+        "roc_6_days",
+        "roc_12_days",
+        "roc_20_days",
+        "single_day_vpt",
+        "single_day_vpt_6",
+        "single_day_vpt_12",
+        "cci_10_days",
+        "cci_15_days",
+        "cci_20_days",
+        "bull_power",
+        # emotion
+        "vstd_10_days",
+        "vstd_20_days",
+        "tvstd_6_days",
+        "tvstd_20_days",
+        "vema_5_days",
+        "vema_10_days",
+        "vosc",
+        "vroc_6_days",
+        "vroc_12_days",
+        "tvma_6_days",
+        "wvad",
+        "ar",
+        # extraFacters
+        #"rsrs",
+        # generalFactors
+        "kdj",
+        "wr",
+        "psy",
+        "atr",
+        "bbi",
+        "dmi",
+        "taq",
+        "ktn",
+        "trix",
+        "vr",
+        "emv",
+        "dpo",
+        "brar",
+        "dfma",
+        "mtm",
+        "mass",
+        "obv",
+        "mfi",
+        "asi",
+        "xsii",
+
         "volatility",
 
     ]

@@ -129,12 +129,12 @@ class _Base:
         if "level_0" in self.dataframe.columns and "tic" not in self.dataframe.columns:
             self.dataframe.rename(columns={"level_0": "tic"}, inplace=True)
         assert select_stockstats_talib in {0, 1}
-        print("tech_indicator_list: ", tech_indicator_list)
+        # print("tech_indicator_list: ", tech_indicator_list)
         if select_stockstats_talib == 0:  # use stockstats
             stock = stockstats.StockDataFrame.retype(self.dataframe)
             unique_ticker = stock.tic.unique()
             for indicator in tech_indicator_list:
-                print("indicator: ", indicator)
+                # print("indicator: ", indicator)
                 indicator_df = pd.DataFrame()
                 for i in range(len(unique_ticker)):
                     try:
@@ -219,12 +219,12 @@ class _Base:
         # print('fft_df_new', fft_df_new)
         return fft_df_new
 
-    def add_technical_factor_fft(self):
+    def add_technical_factor_fft(self, df):
         fft_steps = 21
         fft_comp = 3
         colums = []
 
-        data = self.dataframe
+        data = df #self.dataframe
         data = data.iloc[:, 4].rolling(window=fft_steps)
 
         for name in ['absolute', 'angle']:  # 'fft',
@@ -269,7 +269,11 @@ class _Base:
 
         print("fft_data", fft_data)
         for name in colums:
-            self.dataframe[name] = fft_data[name]
+            df[name] = fft_data[name]
+            #self.dataframe[name] = fft_data[name]
+
+        return fft_data
+
 
 
     def add_turbulence(self):

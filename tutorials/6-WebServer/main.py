@@ -114,10 +114,10 @@ def data_trade():
     p = pro.data_process_creat(start, end)  # trade
     pro.download_data(ticker_list, p)
 
-
     # p = pro.data_process_creat(time_list['trade_start_date'], time_list['trade_end_date'])  # all
     # p = pro.data_process_creat(start, end)  # all
     # pro.reload_data(p)
+    print("----add_technical_factor", p.dataframe.shape)
     pro.add_technical_factor(p)
 
     env = pro.process_env(p, start, end)
@@ -138,8 +138,7 @@ def data_trade():
 
     trained_model = pro.load_model_file(mod, model_name)
 
-    trade, account_value, actions = pro.data_predict(p, trained_model, time_list['trade_start_date'],
-                                                     time_list['trade_end_date'])
+    trade, account_value, actions = pro.data_predict(p, trained_model, start, end)
     # pro.back_test(trade, account_value, actions)
     response = make_response(actions.to_json())
     response.headers['Access-Control-Allow-Origin'] = '*'

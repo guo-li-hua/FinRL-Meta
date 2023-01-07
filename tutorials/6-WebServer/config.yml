@@ -26,17 +26,26 @@ dir_list:
 
 # date time
 time_list:
-  train_start_date: '2015-01-01'
-  train_end_date: '2022-11-20'
-  trade_start_date: '2022-11-21'
-  trade_end_date: '2022-12-28'
+  train_start_date: '2001-01-01'
+  train_end_date: '2022-11-30'
+  trade_start_date: '2022-12-01'
+  trade_end_date: '2023-01-01'
   time_interval: 1d
 
 # data
 curent_data_source: 'tushare'
 
 ticker_list:
-  - '600009.SH'
+#  - '516550.SH'
+#  - '000001.SZ'
+#  - '399300.SZ'
+
+#  - '000513.SZ'
+#  - '600096.SH'
+#  - '601111.SH'
+  - '600111.SH'
+
+#  - '600009.SH'
 #  - '600016.SH'
 #  - '600028.SH'
 
@@ -50,10 +59,62 @@ indicators:
   - 'close_30_sma'
   - 'close_60_sma'
 
-factors: #  - 'fft'
-  - 'bias_5_days'
-  - 'roc_6_days'
-  - 'vstd_10_days'
+
+factors:
+#  - 'fft'   # 傅里叶变换
+#  # monentum
+  - "bias_5_days"  # 5日乖离率 'ic_mean': '-0.045657'
+#  - "bias_10_days"   # 10日乖离率  'ic_mean': '-0.043967'
+#  - "bias_60_days"  # 60日乖离率 'ic_mean': '-0.039533'
+#  - "price_1_month"   # 当前股价除以过去一个月股价均值再减1 'ic_mean': '-0.039303'
+#  - "price_3_monthes"   # 当前股价除以过去三个月股价均值再减1 'ic_mean': '-0.034927'
+  - "roc_6_days"   # 6日变动速率（Price Rate of Change） 'ic_mean': '-0.030587'
+#  - "roc_12_days"   # 12日变动速率（Price Rate of Change） 'ic_mean': '-0.034748'
+#  - "roc_20_days"   # 20日变动速率（Price Rate of Change）  'ic_mean': '-0.031276'
+  - "single_day_vpt"   # 单日价量趋势  'ic_mean': '-0.051037'
+  - "single_day_vpt_6"  # 单日价量趋势6日均值 'ic_mean': '-0.032458'
+#  - "single_day_vpt_12" # 单日价量趋势12均值 'ic_mean': '-0.031016'
+  - "cci_10_days"   # 10日顺势指标 'ic_mean': '-0.038179'
+#  - "cci_15_days"  # 15日顺势指标 'ic_mean': '-0.035973'
+#  - "cci_20_days"  # 20日顺势指标 'ic_mean': '-0.033437'
+  - "bull_power"  # 多头力道 'ic_mean': '-0.039968'
+#    # emotion
+  - "vstd_10_days"  # 10日成交量标准差 'ic_mean': '-0.037'
+#  - "vstd_20_days"  # 20日成交量标准差 'ic_mean': '-0.033'
+#  - "tvstd_6_days"  # 6日成交金额的标准差 'ic_mean': '-0.044'
+#  - "tvstd_20_days" # 20日成交金额的标准差 'ic_mean': '-0.038'
+  - "vema_5_days"  # 成交量的5日指数移动平均 'ic_mean': '-0.035'
+#  - "vema_10_days" # 10日成交量的移动平均值 'ic_mean': '-0.032'
+  - "vosc"  # 成交量震荡 'ic_mean': '-0.039'
+#  - "vroc_6_days"   # 6日量变动速率指标 'ic_mean': '-0.032'
+#  - "vroc_12_days"  # 12日量变动速率指标 'ic_mean': '-0.040'
+#  - "tvma_6_days"  # 6日成交金额的移动平均值 'ic_mean': '-0.038'
+#  - "wvad"  # 威廉变异离散量 'ic_mean': '-0.031'
+#  - "ar"  # 人气指标 'ic_mean': '-0.031'
+#    # extraFacters  ##特殊因子
+#  - "rsrs"  # 用于记录回归后的beta值，即斜率
+#    # generalFactors
+#  - "macd"   # EMA的关系，S取120日，和雪球小数点2位相同
+  - "kdj"   # KDJ指标
+#  - "wr"  # W&R 威廉指标
+#  - "psy"
+#  - "atr"  # 真实波动N日平均值
+  - "bbi"  # BBI多空指标
+#  - "dmi" # 动向指标：结果和同花顺，通达信完全一致
+#  - "taq"  # 唐安奇通道(海龟)交易指标，大道至简，能穿越牛熊
+#  - "ktn"  # 肯特纳交易通道, N选20日，ATR选10日
+#  - "trix"  # 三重指数平滑平均线
+#  - "vr"   # VR容量比率
+#  - "emv"  # 简易波动指标
+#  - "dpo"  # 区间震荡线
+#  - "brar"  # BRAR-ARBR 情绪指标
+#  - "dfma"  # 平行线差指标
+#  - "mtm"  # 动量指标
+#  - "mass" # 梅斯线
+#  - "obv"  # 能量潮指标
+  - "mfi" # MFI指标是成交量的RSI指标
+#  - "asi" # 振动升降指标
+#  - "xsii" # 薛斯通道II
 
 # env
 env_kwargs_a:

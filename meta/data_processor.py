@@ -127,21 +127,120 @@ class DataProcessor:
         self.dataframe = self.processor.dataframe
 
     def add_technical_factor(self, tech_factor_list: List[str]):
-        for fact in tech_factor_list:
-            if fact == "fft":  # 傅里叶
-                self.processor.add_technical_factor_fft()
-            # monentum
-            elif fact == "bias_5_days":
-                self.dataframe['bias_5_days'] = monentum.bias_5_days(self.dataframe['close'])
-            elif fact == "roc_6_days":
-                self.dataframe['roc_6_days'] = monentum.roc_6_days(self.dataframe['close'])
-            # emotion
-            elif fact == "vstd_10_days":
-                self.dataframe['vstd_10_days'] = emotion.vstd_10_days(self.dataframe['volume'])
-            elif fact == "vosc":
-                self.dataframe['vosc'] = emotion.vosc(self.dataframe['volume'])
+        final_df = pd.DataFrame()
 
-        self.dataframe = self.processor.dataframe
+        df = self.dataframe
+        for i in df.tic.unique():
+            tic_df = df[df.tic == i].copy()
+            for fact in tech_factor_list:
+                if fact == "fft":  # 傅里叶
+                    self.processor.add_technical_factor_fft(tic_df)
+                    # tic_df = tic_df.append(fft_data)
+                # monentum
+                if fact == "bias_5_days":
+                    tic_df['bias_5_days'] = monentum.bias_5_days(tic_df['close'])
+                elif fact == "bias_10_days":
+                    tic_df['bias_10_days'] = monentum.bias_10_days(tic_df['close'])
+                elif fact == "bias_60_days":
+                    tic_df['bias_60_days'] = monentum.bias_60_days(tic_df['close'])
+                elif fact == "price_1_month":
+                    tic_df['price_1_month'] = monentum.price_1_month(tic_df['close'])
+                elif fact == "price_3_monthes":
+                    tic_df['price_3_monthes'] = monentum.price_3_monthes(tic_df['close'])
+                elif fact == "roc_6_days":
+                    tic_df['roc_6_days'] = monentum.roc_6_days(tic_df['close'])
+                elif fact == "roc_12_days":
+                    tic_df['roc_12_days'] = monentum.roc_12_days(tic_df['close'])
+                elif fact == "roc_20_days":
+                    tic_df['roc_20_days'] = monentum.roc_20_days(tic_df['close'])
+                elif fact == "single_day_vpt":
+                    tic_df['single_day_vpt'] = monentum.single_day_vpt(tic_df)
+                elif fact == "single_day_vpt_6":
+                    tic_df['single_day_vpt_6'] = monentum.single_day_vpt_6(tic_df)
+                elif fact == "single_day_vpt_12":
+                    tic_df['single_day_vpt_12'] = monentum.single_day_vpt_12(tic_df)
+                elif fact == "cci_10_days":
+                    tic_df['cci_10_days'] = monentum.cci_10_days(tic_df)
+                elif fact == "cci_15_days":
+                    tic_df['cci_15_days'] = monentum.cci_15_days(tic_df)
+                elif fact == "cci_20_days":
+                    tic_df['cci_20_days'] = monentum.cci_20_days(tic_df)
+                elif fact == "bull_power":
+                    tic_df['bull_power'] = monentum.bull_power(tic_df)
+                # emotion
+                elif fact == "vstd_10_days":
+                    tic_df['vstd_10_days'] = emotion.vstd_10_days(tic_df['volume'])
+                elif fact == "vstd_20_days":
+                    tic_df['vstd_20_days'] = emotion.vstd_20_days(tic_df['volume'])
+                elif fact == "tvstd_6_days":
+                    tic_df['tvstd_6_days'] = emotion.tvstd_6_days(tic_df)
+                elif fact == "tvstd_20_days":
+                    tic_df['tvstd_20_days'] = emotion.tvstd_20_days(tic_df)
+                elif fact == "vema_5_days":
+                    tic_df['vema_5_days'] = emotion.vema_5_days(tic_df['volume'])
+                elif fact == "vema_10_days":
+                    tic_df['vema_10_days'] = emotion.vema_10_days(tic_df['volume'])
+                elif fact == "vosc":
+                    tic_df['vosc'] = emotion.vosc(tic_df['volume'])
+                elif fact == "vroc_6_days":
+                    tic_df['vroc_6_days'] = emotion.vroc_6_days(tic_df['volume'])
+                elif fact == "vroc_12_days":
+                    tic_df['vroc_12_days'] = emotion.vroc_12_days(tic_df['volume'])
+                elif fact == "tvma_6_days":
+                    tic_df['tvma_6_days'] = emotion.tvma_6_days(tic_df)
+                elif fact == "wvad":
+                    tic_df['wvad'] = emotion.wvad(tic_df)
+                elif fact == "ar":
+                    tic_df['ar'] = emotion.ar(tic_df)
+                # extraFacters
+                elif fact == "rsrs":
+                    tic_df['rsrs'] = extra.rsrs(tic_df, 10)
+                # generalFactors
+                elif fact == "macd":
+                    tic_df['macd'] = general.macd(tic_df['close'])
+                elif fact == "kdj":
+                    tic_df['kdj'] = general.kdj(tic_df, "KDJ_K")  # KDJ_D   KDJ_J
+                elif fact == "wr":
+                    tic_df['wr'] = general.wr(tic_df)
+                elif fact == "psy":
+                    tic_df['psy'] = general.psy(tic_df['close'], "PSY")
+                elif fact == "atr":
+                    tic_df['atr'] = general.atr(tic_df)
+                elif fact == "bbi":
+                    tic_df['bbi'] = general.bbi(tic_df['close'])
+                elif fact == "dmi":
+                    tic_df['dmi'] = general.dmi(tic_df, "DMI_PDI")
+                elif fact == "taq":
+                    tic_df['taq'] = general.taq(tic_df, "TAQ_MID")
+                elif fact == "ktn":
+                    tic_df['ktn'] = general.ktn(tic_df, "KTN_mid")
+                elif fact == "trix":
+                    tic_df['trix'] = general.trix(tic_df['close'], "TRMA")
+                elif fact == "vr":
+                    tic_df['vr'] = general.vr(tic_df)
+                elif fact == "emv":
+                    tic_df['emv'] = general.emv(tic_df, "MAEMV")
+                elif fact == "dpo":
+                    tic_df['dpo'] = general.dpo(tic_df['close'], "DPO")
+                elif fact == "brar":
+                    tic_df['brar'] = general.brar(tic_df)
+                elif fact == "dfma":
+                    tic_df['dfma'] = general.dfma(tic_df['close'])
+                elif fact == "mtm":
+                    tic_df['mtm'] = general.mtm(tic_df['close'], "MTM")
+                elif fact == "mass":
+                    tic_df['mass'] = general.mass(tic_df, "MASS")
+                elif fact == "obv":
+                    tic_df['obv'] = general.obv(tic_df)
+                elif fact == "mfi":
+                    tic_df['mfi'] = general.mfi(tic_df)
+                elif fact == "asi":
+                    tic_df['asi'] = general.asi(tic_df, "ASI")
+                elif fact == "xsii":
+                    tic_df['xsii'] = general.xsii(tic_df, "XSII_TD1")
+
+            final_df = final_df.append(tic_df)
+        self.dataframe = final_df
 
     def add_technical_factor_with_data(self, df, tech_factor_list: List[str]):
         final_df = pd.DataFrame()

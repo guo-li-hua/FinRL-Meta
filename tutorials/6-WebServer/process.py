@@ -90,11 +90,17 @@ def add_technical_factor(p):
     indicator = cfg.indicators_get()
     factor_list = cfg.factors_get()
 
+    # print("before add_technical_indicator", p.dataframe.shape)
     p.add_technical_indicator(indicator)
-    p.add_technical_factor(factor_list)
+    # print("after add_technical_indicator", p.dataframe.shape)
+
+    # p.add_technical_factor(factor_list)
+    print("after add_technical_factor", p.dataframe.shape)
+    print(p.dataframe)
 
     p.clean_data()
-    print(f"p.dataframe: {p.dataframe}")
+
+    # print(f"p.dataframe: {p.dataframe}")
 
 
 ### Train
@@ -134,10 +140,27 @@ def agent_ddpg(env_train):
 
 def agent_a2c(env_train):
     ## A2C
-
     agent = DRLAgent(env=env_train)
     model_a2c = agent.get_model("a2c")
     return agent, model_a2c
+
+def agent_td3(env_train):
+    ## TD3
+    agent = DRLAgent(env=env_train)
+    model_td3 = agent.get_model("td3")
+    return agent, model_td3
+
+def agent_sac(env_train):
+    ## SAC
+    agent = DRLAgent(env=env_train)
+    model_sac = agent.get_model("sac")
+    return agent, model_sac
+
+def agent_ppo(env_train):
+    ## PPO
+    agent = DRLAgent(env=env_train)
+    model_ppo = agent.get_model("ppo")
+    return agent, model_ppo
 
 
 def data_train(agent, model, name):
@@ -172,16 +195,19 @@ def load_model_file(model, name):
 def data_predict(p, model, start, end):
     ### Trade
     time_list = cfg.time_list_get()
-    print(p.dataframe)
+    # print(p.dataframe)
     trade = p.data_split(p.dataframe, start, end)
     print("data_predict.......")
-    print(trade)
+    # print(trade)
     env_kwargs = common.env_kwargs(trade)
     e_trade_gym = StockTradingEnv(df=trade, **env_kwargs)
 
     # df_account_value, df_actions = DRLAgent.DRL_prediction(
     #     model=trained_ddpg, environment=e_trade_gym
     # )
+
+    # model.eval()
+    # DRLAgent.predict_generator
 
     df_account_value, df_actions = DRLAgent.DRL_prediction(
         model=model, environment=e_trade_gym
@@ -200,7 +226,7 @@ def back_test(trade, df_account_value, df_actions):
     plotter = ReturnPlotter(df_account_value, trade, time_list['trade_start_date'], time_list['trade_end_date'])
     plotter.plot_all()
 
-    plotter.plot_back(trade, df_actions, '600009.SH')
+    plotter.plot_back(trade, df_actions, '600111.SH')
 
     plt.clf()
     plotter.plot()
@@ -208,12 +234,13 @@ def back_test(trade, df_account_value, df_actions):
     # matplotlib inline
     # # ticket: SSE 50：000016
     plt.clf()
-    plotter.plot("000016")
+    plotter.plot("600111")
 
     #### Use pyfolio
 
     # CSI 300  #沪深300  399300
-    baseline_df = plotter.get_baseline("600009")
+    baseline_df = plotter.get_baseline("600111")
+    # print("baseline", baseline_df)
 
     daily_return = plotter.get_return(df_account_value)
     daily_return_base = plotter.get_return(baseline_df, value_col_name="close")
@@ -245,7 +272,7 @@ def back_test(trade, df_account_value, df_actions):
     print(f"perf_stats_all: {perf_stats_all}")
 
 
-def test_run():
+def all_run():
     time_list = cfg.time_list_get()
     p = data_process_creat(time_list['train_start_date'], time_list['trade_end_date'])  # all
     # p = data_process_creat(time_list['trade_start_date'], time_list['trade_end_date'])  # trade
@@ -254,21 +281,36 @@ def test_run():
     add_technical_factor(p)
 
     ticker = cfg.ticker_list_get()[0].replace('.','')
-    model_name_a2c = 'train_a2c_' + ticker + '_0'
-    model_name_ddpg = 'train_ddpg_' + ticker + '_0'
+    model_name_a2c = 'train_a2c_' + ticker + '_0.zip'
+    model_name_ddpg = 'train_ddpg_' + ticker + '_0.zip'
+    model_name_td3 = 'train_td3_' + ticker + '_0.zip'
+    model_name_sac = 'train_sac_' + ticker + '_0.zip'
+    model_name_ppo = 'train_ppo_' + ticker + '_0.zip'
+
     # print("model name",model_name_a2c, ":",  model_name_ddpg)
     env = process_env(p, time_list['train_start_date'], time_list['train_end_date'])
+
     # agent, mod = agent_ddpg(env)
     # trained_model = data_train(agent, mod, model_name_ddpg)
+
     agent, mod = agent_a2c(env)
     trained_model = data_train(agent, mod, model_name_a2c)
 
-    # trained_model = load_model_file(mod, model_name_a2c)
+    # agent, mod = agent_td3(env)
+    # trained_model = data_train(agent, mod, model_name_td3)
+
+    # agent, mod = agent_sac(env)
+    # trained_model = data_train(agent, mod, model_name_sac)
+
+    # agent, mod = agent_ppo(env)
+    # trained_model = data_train(agent, mod, model_name_ppo)
+
+    # trained_model = load_model_file(mod, model_name_ppo)
 
     trade, account_value, actions = data_predict(p, trained_model, time_list['trade_start_date'],
                                                  time_list['trade_end_date'])
 
     back_test(trade, account_value, actions)
 
-# test_run()
+all_run()
 

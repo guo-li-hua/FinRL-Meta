@@ -87,7 +87,7 @@ class DRLAgent:
             model_kwargs["action_noise"] = NOISE[model_kwargs["action_noise"]](
                 mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions)
             )
-        print(model_kwargs)
+        print("model_kwargs:",model_kwargs)
         model = MODELS[model_name](  #A2C( #DDPG   SAC  PPO
             policy=policy,
             env=self.env,
@@ -134,7 +134,7 @@ class DRLAgent:
         actions_memory = []
         test_env.reset()
         for i in range(len(environment.df.index.unique())):
-            action, _states = model.predict(test_obs, deterministic=True)
+            action, _states = model.predict(test_obs, deterministic=True) #deterministic=True
             # account_memory = test_env.env_method(method_name="save_asset_memory")
             # actions_memory = test_env.env_method(method_name="save_action_memory")
             test_obs, rewards, dones, info = test_env.step(action)
