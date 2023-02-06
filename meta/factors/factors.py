@@ -295,6 +295,7 @@ class EmotionFactors:
     # 成交量的5日指数移动平均 'ic_mean': '-0.035'
     def vema_5_days(volume, N=5):
         #
+        volume = 0 #tmp  会导致后面两个数据为空
         return pd.Series(ema(volume, N))
 
     # 成交量的10日指数移动平均 'ic_mean': '-0.032'

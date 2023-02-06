@@ -3,10 +3,10 @@ import time
 import warnings
 from copy import deepcopy
 from typing import List
-import numpy
 
 import pandas as pd
 from tqdm import tqdm
+import numpy
 
 from meta.data_processors._base import _Base
 
@@ -26,12 +26,12 @@ class Tushare(_Base):
     """
 
     def __init__(
-            self,
-            data_source: str,
-            start_date: str,
-            end_date: str,
-            time_interval: str,
-            **kwargs,
+        self,
+        data_source: str,
+        start_date: str,
+        end_date: str,
+        time_interval: str,
+        **kwargs,
     ):
         super().__init__(data_source, start_date, end_date, time_interval, **kwargs)
         assert "token" in kwargs.keys(), "Please input token!"
@@ -106,7 +106,7 @@ class Tushare(_Base):
         print("Shape of DataFrame: ", self.dataframe.shape)
 
     def clean_data(self):
-        #print("clean_data, ---Shape of DataFrame: ", self.dataframe.shape)
+        # print("clean_data, ---Shape of DataFrame: ", self.dataframe.shape)
         dfc = copy.deepcopy(self.dataframe)
 
         dfcode = pd.DataFrame(columns=["tic"])
@@ -280,7 +280,7 @@ class ReturnPlotter:
         self.df_account_value = df_account_value
 
     def get_baseline(self, ticket):
-        df = ts.get_hist_data(ticket, start=self.start, end=self.end)
+        df = ts.get_hist_data(ticket, start=self.start, end=self.end)  #
         df.loc[:, "dt"] = df.index
         df.index = range(len(df))
         df.sort_values(axis=0, by="dt", ascending=True, inplace=True)
@@ -436,7 +436,7 @@ class ReturnPlotter:
         # plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', ticker]].reset_index()
         plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', 'actions']].reset_index()
         fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(111)
+        ax = fig.add_subplot(211)
         ax.plot(plot_df.index, plot_df['close'], label=ticker)
         # 只显示时刻点，不显示折线图 => 设置 linewidth=0
         ax.plot(plot_df.loc[plot_df['actions'] > 0].index, plot_df['close'][plot_df['actions'] > 0], label='Buy',
@@ -444,9 +444,14 @@ class ReturnPlotter:
         ax.plot(plot_df.loc[plot_df['actions'] < 0].index, plot_df['close'][plot_df['actions'] < 0], label='Sell',
                 linewidth=0, marker='v', c='r')
 
+        plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
+
+        bx = fig.add_subplot(212)
+        bx.plot(plot_df.index, plot_df['actions'], label=ticker)
+
         plt.legend(loc='best')
         plt.grid(True)
-        plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
+        # plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
         plt.show()
         # print(plot_df.loc[df_plot['actions'] > 0])
         plt.savefig("./results/plot_back.png")

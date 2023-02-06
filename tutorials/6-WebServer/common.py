@@ -1,9 +1,11 @@
 import os
 from typing import List
 import config_parse as cfg
+
 # from meta.data_processor import DataProcessor
 
 print("common....")
+
 
 # "./" will be added in front of each directory
 def check_and_make_directories(directories: List[str]):
@@ -11,15 +13,16 @@ def check_and_make_directories(directories: List[str]):
         if not os.path.exists("./" + directory):
             os.makedirs("./" + directory)
 
-def cache_file(start, end):
-    ticker_list = cfg.ticker_list_get()
+
+def cache_file(tickers, start, end):
+    # ticker_list = cfg.ticker_list_get()
     time_list = cfg.time_list_get()
     data_source = cfg.curent_data_source_get()
     dir_list = cfg.dir_list_get()
 
     cache_filename = (
             "_".join(
-                ticker_list
+                tickers
                 + [
                     data_source,
                     # time_list['train_start_date'],
@@ -53,44 +56,56 @@ def data_process(p, start, end, del_cnt=0):
     print(f"train.shape: {train.shape}")
     return train
 
+
 def env_kwargs(data):
     stock_dimension = len(data.tic.unique())
-    state_space = stock_dimension * (len(cfg.indicators_get()) + 2) + 1
+    state_space = stock_dimension * (len(cfg.indicators_get()) + len(cfg.factors_get()) + 2) + 1
     print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
 
-    # kwargs = {
-    #     "stock_dim": stock_dimension,
-    #     "hmax": 10000,
-    #     "initial_amount": 1000000,
-    #     "buy_cost_pct": 6.87e-5,
-    #     "sell_cost_pct": 1.0687e-3,
-    #     "reward_scaling": 1e-4,
-    #     "state_space": state_space,
-    #     "action_space": stock_dimension,
-    #     "tech_indicator_list": cfg.indicators_get(),
-    #     "print_verbosity": 1,
-    #     "initial_buy": False,
-    #     "hundred_each_trade": True,
-    # }
     kwargs = {
         "stock_dim": stock_dimension,
-        "hmax": 10000,
+        "hmax": 1000000,
         "initial_amount": 1000000,
-        # "buy_cost_pct": 3.000e-4,
-        # "sell_cost_pct": 2.250e-3,
-        # "reward_scaling": 2.000e-4,
-        "buy_cost_pct": 6.87e-5,
-        "sell_cost_pct": 1.0687e-3,
-        "reward_scaling": 1e-4,
+        "buy_cost_pct": 3.000e-4,
+        "sell_cost_pct": 2.250e-3,
+        "reward_scaling": 2.000e-4,
+        # "buy_cost_pct": 6.87e-5,
+        # "sell_cost_pct": 1.0687e-3,
+        # "reward_scaling": 1e-3, ##
         "state_space": state_space,
         "action_space": stock_dimension,
-        "tech_indicator_list": cfg.indicators_get(),
+        "tech_indicator_list": cfg.indicators_get() + cfg.factors_get(),
         "print_verbosity": 1,
-        "initial_buy": False,
+        "initial_buy": False,  # False
         "hundred_each_trade": True,
+        # "turbulence_threshold": 0.2,
+        # "day":0,
     }
     return kwargs
 
 
+def env_kwargs_del(data):
+    stock_dimension = len(data.tic.unique())
+    state_space = stock_dimension * (len(cfg.indicators_get()) + 2) + 1
+    print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
 
-
+    kwargs = {
+        "stock_dim": stock_dimension,
+        "hmax": 10000,
+        "initial_amount": 1000000,
+        "buy_cost_pct": 3.000e-4,
+        "sell_cost_pct": 2.250e-3,
+        "reward_scaling": 2.000e-4,
+        # "buy_cost_pct": 6.87e-5,
+        # "sell_cost_pct": 1.0687e-3,
+        # "reward_scaling": 1e-4,
+        "state_space": state_space,
+        "action_space": stock_dimension,
+        "tech_indicator_list": cfg.indicators_get(),
+        "print_verbosity": 1,
+        "initial_buy": False,  # False
+        "hundred_each_trade": True,
+        # "turbulence_threshold": 0.2,
+        # "day": 0,
+    }
+    return kwargs

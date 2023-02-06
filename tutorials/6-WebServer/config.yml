@@ -29,7 +29,7 @@ time_list:
   train_start_date: '2001-01-01'
   train_end_date: '2022-11-30'
   trade_start_date: '2022-12-01'
-  trade_end_date: '2023-01-01'
+  trade_end_date: '2023-01-17'
   time_interval: 1d
 
 # data
@@ -42,8 +42,8 @@ ticker_list:
 
 #  - '000513.SZ'
 #  - '600096.SH'
-#  - '601111.SH'
-  - '600111.SH'
+  - '601111.SH'
+#  - '600111.SH'
 
 #  - '600009.SH'
 #  - '600016.SH'
@@ -54,13 +54,21 @@ indicators:
   - 'boll_ub'
   - 'boll_lb'
   - 'rsi_30'
-  - 'cci_30'
-  - 'dx_30'
-  - 'close_30_sma'
-  - 'close_60_sma'
+#  - 'cci_30'
+#  - 'dx_30'
+#删除
+#  - 'close_30_sma'
+#  - 'close_60_sma'
 
 
 factors:
+#basic
+  - 'basic_ma_5'  # 序列的N日简单移动平均值
+  - 'basic_ema_5'  # 指数移动平均
+  - 'basic_avedev_5' # 平均绝对偏差  (序列与其平均值的绝对差的平均值)
+  - 'basic_std_5' # 序列的N日标准差
+  - 'basic_llv_5' # 最近5天收盘最低价
+  - 'basic_hhv_5' # 最近5天收盘最高价
 #  - 'fft'   # 傅里叶变换
 #  # monentum
   - "bias_5_days"  # 5日乖离率 'ic_mean': '-0.045657'
@@ -85,7 +93,7 @@ factors:
 #  - "tvstd_20_days" # 20日成交金额的标准差 'ic_mean': '-0.038'
   - "vema_5_days"  # 成交量的5日指数移动平均 'ic_mean': '-0.035'
 #  - "vema_10_days" # 10日成交量的移动平均值 'ic_mean': '-0.032'
-  - "vosc"  # 成交量震荡 'ic_mean': '-0.039'
+##  - "vosc"  # 成交量震荡 'ic_mean': '-0.039'
 #  - "vroc_6_days"   # 6日量变动速率指标 'ic_mean': '-0.032'
 #  - "vroc_12_days"  # 12日量变动速率指标 'ic_mean': '-0.040'
 #  - "tvma_6_days"  # 6日成交金额的移动平均值 'ic_mean': '-0.038'
@@ -99,7 +107,7 @@ factors:
 #  - "wr"  # W&R 威廉指标
 #  - "psy"
 #  - "atr"  # 真实波动N日平均值
-  - "bbi"  # BBI多空指标
+##  - "bbi"  # BBI多空指标
 #  - "dmi" # 动向指标：结果和同花顺，通达信完全一致
 #  - "taq"  # 唐安奇通道(海龟)交易指标，大道至简，能穿越牛熊
 #  - "ktn"  # 肯特纳交易通道, N选20日，ATR选10日
@@ -112,7 +120,7 @@ factors:
 #  - "mtm"  # 动量指标
 #  - "mass" # 梅斯线
 #  - "obv"  # 能量潮指标
-  - "mfi" # MFI指标是成交量的RSI指标
+##  - "mfi" # MFI指标是成交量的RSI指标
 #  - "asi" # 振动升降指标
 #  - "xsii" # 薛斯通道II
 

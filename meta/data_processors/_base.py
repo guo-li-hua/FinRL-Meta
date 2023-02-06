@@ -305,21 +305,21 @@ class _Base:
             "yahoofinance",
         ]:
             turbulence_index = self.calculate_turbulence()
-            self.dataframe = self.dataframe.merge(turbulence_index, on="time")
-            self.dataframe.sort_values(["time", "tic"], inplace=True).reset_index(
-                drop=True, inplace=True
-            )
+            self.dataframe = self.dataframe.merge(turbulence_index, on="date")
+            self.dataframe.sort_values(["date", "tic"], inplace=True)#.reset_index(
+               #drop=True, inplace=True
+            #)
 
     def calculate_turbulence(self, time_period: int = 252) -> pd.DataFrame:
         """calculate turbulence index based on dow 30"""
         # can add other market assets
         df_price_pivot = self.dataframe.pivot(
-            index="time", columns="tic", values="close"
+            index="date", columns="tic", values="close"
         )
         # use returns to calculate turbulence
         df_price_pivot = df_price_pivot.pct_change()
 
-        unique_date = self.dataframe["time"].unique()
+        unique_date = self.dataframe["date"].unique()
         # start after a year
         start = time_period
         turbulence_index = [0] * start
@@ -356,7 +356,7 @@ class _Base:
             turbulence_index.append(turbulence_temp)
 
         turbulence_index = pd.DataFrame(
-            {"time": df_price_pivot.index, "turbulence": turbulence_index}
+            {"date": df_price_pivot.index, "turbulence": turbulence_index}
         )
         return turbulence_index
 

@@ -9,6 +9,7 @@ from meta.factors.factors import MomentumFactors as monentum
 from meta.factors.factors import EmotionFactors as emotion
 from meta.factors.factors import extraFacters as extra
 from meta.factors.factors import generalFactors as general
+import meta.factors.factors as basics_factors
 
 
 class DataProcessor:
@@ -136,6 +137,21 @@ class DataProcessor:
                 if fact == "fft":  # 傅里叶
                     self.processor.add_technical_factor_fft(tic_df)
                     # tic_df = tic_df.append(fft_data)
+                # basics
+                if fact == "basic_ma_5":
+                    print("basic_ma_5 before")
+                    tic_df['basic_ma_5'] = basics_factors.ma(tic_df['close'], 5)
+                    print("basic_ma_5 after")
+                if fact == "basic_ema_5":
+                    tic_df['basic_ema_5'] = basics_factors.ema(tic_df['close'], 5)
+                if fact == "basic_avedev_5":
+                    tic_df['basic_avedev_5'] = basics_factors.avedev(tic_df['close'], 5)
+                if fact == "basic_std_5":
+                    tic_df['basic_std_5'] = basics_factors.std(tic_df['close'], 5)
+                if fact == "basic_llv_5":
+                    tic_df['basic_llv_5'] = basics_factors.llv(tic_df['close'], 5)
+                if fact == "basic_hhv_5":
+                    tic_df['basic_hhv_5'] = basics_factors.hhv(tic_df['close'], 5)
                 # monentum
                 if fact == "bias_5_days":
                     tic_df['bias_5_days'] = monentum.bias_5_days(tic_df['close'])
@@ -424,7 +440,6 @@ class DataProcessor:
         else:
             self.download_data(ticker_list)
             self.clean_data()
-            print(self.dataframe)
             if cache:
                 if not os.path.exists(cache_dir):
                     os.mkdir(cache_dir)
