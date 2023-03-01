@@ -5,18 +5,18 @@ from numpy import random as rd
 
 class StockTradingEnv(gym.Env):
     def __init__(
-        self,
-        config,
-        initial_account=1e6,
-        gamma=0.99,
-        turbulence_thresh=99,
-        min_stock_rate=0.1,
-        max_stock=1e2,
-        initial_capital=1e6,
-        buy_cost_pct=1e-3,
-        sell_cost_pct=1e-3,
-        reward_scaling=2**-11,
-        initial_stocks=None,
+            self,
+            config,
+            initial_account=1e6,  # 初始本金
+            gamma=0.99,  # 强化学习的折扣比率，给人为设置的终止状态的reward进行补偿的时候会用到
+            turbulence_thresh=99,
+            min_stock_rate=0.1, # 股票交易额度最小值率，即交易额度*该值=最小成交额
+            max_stock=1e2,  # 最大交易额度，买入或卖出100个单位
+            initial_capital=1e6,  # 初始化资金
+            buy_cost_pct=1e-3,  # 交易损耗率设为 0.001
+            sell_cost_pct=1e-3,  # 交易损耗率设为 0.001
+            reward_scaling=2 ** -11,  # 奖励比例
+            initial_stocks=None, # 初始股票
     ):
         price_array = config["price_array"]
         tech_array = config["tech_array"]
@@ -26,10 +26,10 @@ class StockTradingEnv(gym.Env):
         self.tech_array = tech_array.astype(np.float32)
         self.turbulence_array = turbulence_array
 
-        self.tech_array = self.tech_array * 2**-7
+        self.tech_array = self.tech_array * 2 ** -7
         self.turbulence_bool = (turbulence_array > turbulence_thresh).astype(np.float32)
         self.turbulence_array = (
-            self.sigmoid_sign(turbulence_array, turbulence_thresh) * 2**-5
+                self.sigmoid_sign(turbulence_array, turbulence_thresh) * 2 ** -5
         ).astype(np.float32)
 
         stock_dim = self.price_array.shape[1]
@@ -48,7 +48,7 @@ class StockTradingEnv(gym.Env):
 
         # reset()
         self.time = None
-        self.cash = None
+        self.cash = None  #现金，理解为usdt
         self.stocks = None
         self.total_asset = None
         self.gamma_reward = None
@@ -81,12 +81,12 @@ class StockTradingEnv(gym.Env):
 
         if self.if_train:
             self.stocks = (
-                self.initial_stocks + rd.randint(0, 64, size=self.initial_stocks.shape)
+                    self.initial_stocks + rd.randint(0, 64, size=self.initial_stocks.shape)
             ).astype(np.float32)
             self.stocks_cool_down = np.zeros_like(self.stocks)
             self.cash = (
-                self.initial_capital * rd.uniform(0.95, 1.05)
-                - (self.stocks * price).sum()
+                    self.initial_capital * rd.uniform(0.95, 1.05)
+                    - (self.stocks * price).sum()
             )
         else:
             self.stocks = self.initial_stocks.astype(np.float32)
@@ -102,7 +102,7 @@ class StockTradingEnv(gym.Env):
         actions = (actions * self.max_stock).astype(int)
         self.time += 1
         price = self.price_array[self.time]
-        self.stocks_cool_down += 1
+        self.stocks_cool_down += 1  #冷冻期？
 
         if self.turbulence_bool[self.time] == 0:
             min_action = int(self.max_stock * self.min_stock_rate)  # stock_cd
@@ -111,12 +111,12 @@ class StockTradingEnv(gym.Env):
                     sell_num_shares = min(self.stocks[index], -actions[index])
                     self.stocks[index] -= sell_num_shares
                     self.cash += (
-                        price[index] * sell_num_shares * (1 - self.sell_cost_pct)
+                            price[index] * sell_num_shares * (1 - self.sell_cost_pct)
                     )
                     self.stocks_cool_down[index] = 0
             for index in np.where(actions > min_action)[0]:  # buy_index:
                 if (
-                    price[index] > 0
+                        price[index] > 0
                 ):  # Buy only if the price is > 0 (no missing data in this particular date)
                     buy_num_shares = min(self.cash // price[index], actions[index])
                     self.stocks[index] += buy_num_shares
@@ -142,8 +142,8 @@ class StockTradingEnv(gym.Env):
         return state, reward, done, dict()
 
     def get_state(self, price):
-        cash = np.array(self.cash * (2**-12), dtype=np.float32)
-        scale = np.array(2**-6, dtype=np.float32)
+        cash = np.array(self.cash * (2 ** -12), dtype=np.float32)
+        scale = np.array(2 ** -6, dtype=np.float32)
         return np.hstack(
             (
                 cash,

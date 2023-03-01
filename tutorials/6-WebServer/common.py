@@ -59,18 +59,25 @@ def data_process(p, start, end, del_cnt=0):
 
 def env_kwargs(data):
     stock_dimension = len(data.tic.unique())
-    state_space = stock_dimension * (len(cfg.indicators_get()) + len(cfg.factors_get()) + 2) + 1
+
+    # state_space:
+    # amount
+    # close
+    # buy/sell count
+    # tech
+    state_space = stock_dimension * (len(cfg.indicators_get()) + len(
+        cfg.factors_get()) + 2) + 1# stock_dimension  # + 1 + 1 : add index + action 偏差记录
     print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
 
     kwargs = {
         "stock_dim": stock_dimension,
-        "hmax": 1000000,
+        "hmax": 10000,
         "initial_amount": 1000000,
         "buy_cost_pct": 3.000e-4,
         "sell_cost_pct": 2.250e-3,
         "reward_scaling": 2.000e-4,
         # "buy_cost_pct": 6.87e-5,
-        # "sell_cost_pct": 1.0687e-3,
+        # "sell_cost_pct": 1.0687e-4,
         # "reward_scaling": 1e-3, ##
         "state_space": state_space,
         "action_space": stock_dimension,
@@ -83,29 +90,28 @@ def env_kwargs(data):
     }
     return kwargs
 
-
-def env_kwargs_del(data):
-    stock_dimension = len(data.tic.unique())
-    state_space = stock_dimension * (len(cfg.indicators_get()) + 2) + 1
-    print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
-
-    kwargs = {
-        "stock_dim": stock_dimension,
-        "hmax": 10000,
-        "initial_amount": 1000000,
-        "buy_cost_pct": 3.000e-4,
-        "sell_cost_pct": 2.250e-3,
-        "reward_scaling": 2.000e-4,
-        # "buy_cost_pct": 6.87e-5,
-        # "sell_cost_pct": 1.0687e-3,
-        # "reward_scaling": 1e-4,
-        "state_space": state_space,
-        "action_space": stock_dimension,
-        "tech_indicator_list": cfg.indicators_get(),
-        "print_verbosity": 1,
-        "initial_buy": False,  # False
-        "hundred_each_trade": True,
-        # "turbulence_threshold": 0.2,
-        # "day": 0,
-    }
-    return kwargs
+# def env_kwargs_del(data):
+#     stock_dimension = len(data.tic.unique())
+#     state_space = stock_dimension * (len(cfg.indicators_get()) + 2) + 1
+#     print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
+#
+#     kwargs = {
+#         "stock_dim": stock_dimension,
+#         "hmax": 10000,
+#         "initial_amount": 1000000,
+#         "buy_cost_pct": 3.000e-4,
+#         "sell_cost_pct": 2.250e-3,
+#         "reward_scaling": 2.000e-1,
+#         # "buy_cost_pct": 6.87e-5,
+#         # "sell_cost_pct": 1.0687e-3,
+#         # "reward_scaling": 1e-4,
+#         "state_space": state_space,
+#         "action_space": stock_dimension,
+#         "tech_indicator_list": cfg.indicators_get(),
+#         "print_verbosity": 1,
+#         "initial_buy": False,  # False
+#         "hundred_each_trade": True,
+#         # "turbulence_threshold": 0.2,
+#         # "day": 0,
+#     }
+#     return kwargs

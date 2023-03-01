@@ -27,7 +27,7 @@ from IPython import display
 from meta.data_processor import DataProcessor
 from main import check_and_make_directories
 from meta.data_processors.tushare import Tushare, ReturnPlotter
-from meta.env_stock_trading.env_stocktrading_China_A_shares import (
+from meta.env_stock_trading.env_stocktrading_China_A_shares_30days import (
     StockTradingEnv,
 )
 from agents.stablebaselines3_models import DRLAgent

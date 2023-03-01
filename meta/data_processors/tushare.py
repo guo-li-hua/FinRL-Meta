@@ -26,12 +26,12 @@ class Tushare(_Base):
     """
 
     def __init__(
-        self,
-        data_source: str,
-        start_date: str,
-        end_date: str,
-        time_interval: str,
-        **kwargs,
+            self,
+            data_source: str,
+            start_date: str,
+            end_date: str,
+            time_interval: str,
+            **kwargs,
     ):
         super().__init__(data_source, start_date, end_date, time_interval, **kwargs)
         assert "token" in kwargs.keys(), "Please input token!"
@@ -46,6 +46,12 @@ class Tushare(_Base):
         # df1 = ts.pro_bar(ts_code=id, start_date=self.start_date,end_date='20180101')
         # dfb=pd.concat([df, df1], ignore_index=True)
         # print(dfb.shape)
+
+        # 港股数据获取
+        # pro = ts.pro_api("e8c62bba3b9e8b4ed9b316aaa80fa7bf8e10b14ff3201d8986391c47")
+        # # 获取单一股票行情
+        # return pro.hk_daily(ts_code=id, start_date=self.start_date, end_date=self.end_date)
+
         return ts.pro_bar(
             ts_code=id,
             start_date=self.start_date,
@@ -328,6 +334,8 @@ class ReturnPlotter:
         ticks = [tick for t, tick in zip(time, datetimes) if t % days_per_tick == 0]
         plt.title("Cumulative Returns")
         plt.plot(time, ours, label="DDPG Agent", color="green")
+
+        print(time, baseline)
         plt.plot(time, baseline, label=baseline_label, color="grey")
         plt.xticks([i * days_per_tick for i in range(len(ticks))], ticks, fontsize=7)
 
@@ -432,7 +440,8 @@ class ReturnPlotter:
         actions = 'actions'
 
         df_plot = pd.merge(left=tradedata, right=actionsdata, on='date', how='inner')
-        # print(df_plot)
+        print("df_plot:", df_plot)
+
         # plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', ticker]].reset_index()
         plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', 'actions']].reset_index()
         fig = plt.figure(figsize=(12, 6))
@@ -454,4 +463,70 @@ class ReturnPlotter:
         # plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
         plt.show()
         # print(plot_df.loc[df_plot['actions'] > 0])
+        plt.savefig("./results/plot_back.png")
+
+    def plot_back_mul(self, tradedata, actionsdata, tickers):
+        print(tradedata)
+        print(actionsdata)
+
+        print(tickers)
+        actions = 'actions'
+        column = 0
+
+        fig, axes = plt.subplots(nrows=len(tickers), ncols=1)
+        # for i in range(num):
+        # for j in range(1):
+
+        num = 0
+        for ticker in tickers:
+            # df_plot = pd.merge(left=tradedata, right=actionsdata, on='date', how='inner')
+
+            data_tr = tradedata.loc[tradedata['tic'] == ticker].loc[:, ['date', 'tic', 'close']]
+            print("df_plot:", data_tr)
+
+            # axes[num, 0].plot(data_tr)
+            axes[num, 0].plot(data_tr['date'], data_tr['close'], label=ticker)
+
+            num += 1
+            column += 1
+
+        plt.show()
+            # # get the N column of the action
+            # df_ac = actionsdata['actions'].str[column]
+            #
+            # print("df_ac before", df_ac)
+            # df_ac.insert(loc=0, value=0)
+            # # df_ac.sort_index(inplace=True)
+            # print("df_ac after", df_ac)
+            # Merging the two dataframes
+            # merged_df = pd.concat([data_tr, df_ac], axis=1)
+            # print("merged_df:", merged_df)
+
+
+
+        # data_ac = pd.merge(left=data_tr, right=actionsdata['actions'].str[column], on='date', how='inner')
+        # print("data_ac:", data_ac)
+
+        #
+        # # plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', ticker]].reset_index()
+        # plot_df = df_plot.loc[df_plot['tic'] == ticker].loc[:, ['date', 'tic', 'close', 'actions']].reset_index()
+        # fig = plt.figure(figsize=(12, 6))
+        # ax = fig.add_subplot(211)
+        # ax.plot(plot_df.index, plot_df['close'], label=ticker)
+        # # 只显示时刻点，不显示折线图 => 设置 linewidth=0
+        # ax.plot(plot_df.loc[plot_df['actions'] > 0].index, plot_df['close'][plot_df['actions'] > 0], label='Buy',
+        #         linewidth=0, marker='^', c='g')
+        # ax.plot(plot_df.loc[plot_df['actions'] < 0].index, plot_df['close'][plot_df['actions'] < 0], label='Sell',
+        #         linewidth=0, marker='v', c='r')
+        #
+        # plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
+        #
+        # bx = fig.add_subplot(212)
+        # bx.plot(plot_df.index, plot_df['actions'], label=ticker)
+
+        # plt.legend(loc='best')
+        # plt.grid(True)
+        # # plt.title(ticker + '__' + str(plot_df['date'].min()) + '___' + str(plot_df['date'].max()))
+        # plt.show()
+        # # print(plot_df.loc[df_plot['actions'] > 0])
         plt.savefig("./results/plot_back.png")

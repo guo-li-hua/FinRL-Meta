@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import scipy
-import statsmodels.api as sm
+
+# import statsmodels.api as sm
 
 
 def filter_Nan(df):
@@ -362,31 +363,32 @@ class extraFacters:
     """
 
     def rsrs(df, N):
-        # 用于记录回归后的beta值，即斜率
-        ans = []
-        # 用于计算被决定系数加权修正后的贝塔值
-        ans_rightdev = []
-        # 一：RSRS指标的构建过程：
-        # 1，取前N日的最高价序列与最低价序列。
-        # 2，将两列数据按前述OLS线性回归模型拟合出当日的斜率值（Beta）。
-        # 3，取前M日的斜率时间序列，计算当日斜率的标准分z。
-        # 4，将z与拟合方程的决定系数相乘，作为当日RSRS指标值。
-        X = sm.add_constant(df["low"])
-        model = sm.OLS(df["high"], X)
-        beta = model.fit().params
-        r2 = model.fit().rsquared
-        ans.append(beta)
-        # 计算标准化的RSRS指标
-        # 计算均值序列
-        section = ans[-N:]
-        # 计算均值序列
-        mu = np.mean(section)
-        # 计算标准化RSRS指标序列
-        sigma = np.std(section)
-        zscore = (section[-1] - mu) / sigma
-        # 计算右偏RSRS标准分
-        return pd.Series(zscore * beta * r2)
+        # # 用于记录回归后的beta值，即斜率
+        # ans = []
+        # # 用于计算被决定系数加权修正后的贝塔值
+        # ans_rightdev = []
+        # # 一：RSRS指标的构建过程：
+        # # 1，取前N日的最高价序列与最低价序列。
+        # # 2，将两列数据按前述OLS线性回归模型拟合出当日的斜率值（Beta）。
+        # # 3，取前M日的斜率时间序列，计算当日斜率的标准分z。
+        # # 4，将z与拟合方程的决定系数相乘，作为当日RSRS指标值。
+        # X = sm.add_constant(df["low"])
+        # model = sm.OLS(df["high"], X)
+        # beta = model.fit().params
+        # r2 = model.fit().rsquared
+        # ans.append(beta)
+        # # 计算标准化的RSRS指标
+        # # 计算均值序列
+        # section = ans[-N:]
+        # # 计算均值序列
+        # mu = np.mean(section)
+        # # 计算标准化RSRS指标序列
+        # sigma = np.std(section)
+        # zscore = (section[-1] - mu) / sigma
+        # # 计算右偏RSRS标准分
+        # return pd.Series(zscore * beta * r2)
 
+        return 0
 
 class generalFactors:
     """

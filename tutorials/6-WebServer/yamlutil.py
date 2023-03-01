@@ -4,7 +4,7 @@ import os
 yaml = ruaml.YAML()
 
 # 获取yaml文件路径
-yamlPath = os.path.join(".\\", "config.yml")
+yamlPath = os.path.join("./", "config.yml")
 
 
 class YamlUtil:

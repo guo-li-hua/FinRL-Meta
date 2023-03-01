@@ -3,6 +3,7 @@ from flask import request
 import config_parse as config
 import process as pro
 import config_parse as cfg
+from flask import make_response
 
 # https://blog.csdn.net/qq_26086231/article/details/124787335
 # 需要导入模块: from flask import request [as 别名]
@@ -114,7 +115,7 @@ def data_train():
     }
 
 
-from flask import make_response
+
 
 
 @app.route('/data/trade', methods=['GET', 'POST', 'PUT'])

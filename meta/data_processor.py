@@ -139,9 +139,7 @@ class DataProcessor:
                     # tic_df = tic_df.append(fft_data)
                 # basics
                 if fact == "basic_ma_5":
-                    print("basic_ma_5 before")
                     tic_df['basic_ma_5'] = basics_factors.ma(tic_df['close'], 5)
-                    print("basic_ma_5 after")
                 if fact == "basic_ema_5":
                     tic_df['basic_ema_5'] = basics_factors.ema(tic_df['close'], 5)
                 if fact == "basic_avedev_5":
@@ -380,6 +378,56 @@ class DataProcessor:
     def add_vix(self):
         self.processor.add_vix()
         self.dataframe = self.processor.dataframe
+
+    def add_reference_tickers(self, tickers):
+        # print("add_reference_tickers:", self.dataframe)
+
+        if len(tickers) <= 0:
+            return self.dataframe
+
+        ref_data = pd.DataFrame()
+        # 原有数据拷贝对应reference_tickers的数据，并在原始数据中把这部分删除掉
+        for tic in tickers:  # self.dataframe.tic.unique():
+            # 获取对应股票数据
+            tic_df = self.dataframe[self.dataframe.tic == tic].copy()
+            # print(self.dataframe[self.dataframe.tic == i].index)
+
+            # 删除原有该股票数据
+            self.dataframe.drop(self.dataframe[self.dataframe.tic == tic].index, inplace=True)
+
+            # 获取股票的close数据
+            df = tic_df.loc[:, ['time', 'close']]
+
+            # 重命名列：
+            df.rename(columns={'close': tic}, inplace=True)
+
+            # 合并股票数据
+            if len(ref_data) == 0:
+                ref_data = df.copy()
+            else:
+                ref_data = pd.merge(ref_data, df, on='time')
+
+        # 对index数据删除然后重新排序
+        # print("ref_data:", ref_data)
+        self.dataframe.drop('index', axis=1, inplace=True)
+        self.dataframe.reset_index(drop=True, inplace=True)
+
+        final_df = pd.DataFrame()
+        # 对数据补充参考股票数据
+        for tic in self.dataframe.tic.unique():
+            tic_df = self.dataframe[self.dataframe.tic == tic].copy()
+            tic_df = pd.merge(tic_df, ref_data, on='time')
+            final_df = final_df.append(tic_df)
+
+        #重新构建索引
+        final_df.reset_index(drop=True, inplace=True)
+        # print("final_df",final_df)
+
+        self.dataframe = final_df
+        # pd.merge(self.dataframe,ref_data, on='time')
+        print("add_reference_tickers after:", self.dataframe)
+
+        return self.dataframe
 
     def df_to_array(self, if_vix: bool) -> np.array:
         price_array, tech_array, turbulence_array = self.processor.df_to_array(
