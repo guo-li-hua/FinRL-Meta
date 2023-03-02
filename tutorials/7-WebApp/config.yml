@@ -1,0 +1,55 @@
+DEBUG: true
+APPID: wx432141124614385b
+SECRET: 52f3af35a17897faf6b9ba5874bd18e3
+
+################ lings settings ##################
+#SQLALCHEMY_DATABASE_URI: sqlite:///${WORKING_DIR}/forecast.db
+#SQLALCHEMY_DATABASE_URI: mysql+pymysql://zliot:zliot.123@www.mqtt.lmshow.net:3306/zliot?charset=utf8&autocommit=true
+SQLALCHEMY_DATABASE_URI: mysql+pymysql://root:ynl123@mysql:3306/zliot?charset=utf8mb4&autocommit=true
+#SQLALCHEMY_DATABASE_URI: mysql+pymysql://root:@localhost:3305/zliot?charset=utf8&autocommit=true
+SQLALCHEMY_POOL_RECYCLE: 300
+SQLALCHEMY_POOL_SIZE: 50
+SQLALCHEMY_COMMIT_ON_TEARDOWN: true
+SQLALCHEMY_BINDS: {}
+# use key-value pair config extra db connection string
+# db.extra_db_uri: {
+#     'index': 'sqlite:///' + os.path.join(working_dir, 'index.db'),
+#     'other': 'mssql+pymssql://' }
+
+# None is memory auth, or redis://:pass@ip/1 set redis auth
+LINGS_AUTH_URL: 'redis://redis-1:6379/2'           # None
+LINGS_AUTH_EXPIRE: 43200  # 24*60*30            # 登录失效时间（分钟）
+LINGS_API_PREFIX: '/api/'
+
+################ 用户二维码 settings ##################
+REGIST_CODE_URL: 'redis://127.0.0.1:6379/3'
+################ 保存微信session_key redis ##################
+WX_OPENID_URL: 'redis://redis-1:6379/1'
+
+
+################ celery settings ##################
+CELERY_TIMEZONE: 'Asia/Shanghai'
+BROKER_URL: 'redis://redis-1:6379/0'
+CELERY_RESULT_BACKEND: 'redis://redis-1:6379/0'
+CELERY_TASK_SERIALIZER: 'pickle'
+CELERY_RESULT_SERIALIZER: 'pickle'
+CELERY_ACCEPT_CONTENT: ['pickle','json']
+
+CELERYD_TASK_TIME_LIMIT: 600
+CELERY_TASK_RESULT_EXPIRES: 86400 #24 * 3600
+# worker的并发数，默认是服务器的内核数目, 也是命令行 - c参数指定的数目
+CELERYD_CONCURRENCY: 4
+CELERY_MESSAGE_COMPRESSION: 'zlib'
+# 每个worker执行了多少任务就会死掉，默认是无限的
+# CELERYD_MAX_TASKS_PER_CHILD: 40
+
+################       SMS        ##################
+SMS_VERIFY_DB: 'redis://redis-1:6379/1'
+
+################ 微信api  https://open.weixin.qq.com ##################
+WECHAT_URL: 'https://api.weixin.qq.com'
+WECHAT_MENU_URL: 'https://wx.heruishiyou.com'
+WECHAT_LOGIN_TIME: 120 # 微信登录失效时间设置
+
+################       OSS        ##################
+# OSS_ROOT: '/opt/oss'
